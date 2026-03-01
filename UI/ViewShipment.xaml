@@ -1,0 +1,17 @@
+﻿<local:AbstractEntryForm x:Class="StationeryStoreManagementSystem.UI.ViewShipment"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
+             xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
+             xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <StackPanel>
+        <Components:TitleBlock Title="View Shipment"/>
+        <Controls:DataLabel x:Name="supplierNameLabel" LabelData="Supplier Name: " FontSize="20" Margin="20 20 20 0"/>
+        <Components:DataViewer x:Name="dataViewer" Height="400"/>
+        <Button Content="Back" HorizontalAlignment="Center" Height="50" Width="100" Click="BackButton_Click"/>
+    </StackPanel>
+</local:AbstractEntryForm>

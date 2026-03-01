@@ -1,0 +1,40 @@
+﻿<UserControl x:Class="StationeryStoreManagementSystem.UI.Controls.DateEntry"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             mc:Ignorable="d" 
+             d:DesignWidth="200"
+             x:Name="DateEntryControl"
+             >
+    <Grid>
+        <StackPanel Margin="20 10">
+            <TextBlock Margin="13 0"
+                    Name="TextBlockLabel"
+                    FontSize="12" 
+                    Text="{Binding ElementName=DateEntryControl,Path=LabelText,Mode=TwoWay}"
+                    HorizontalAlignment="Stretch"
+                    IsHitTestVisible="False"/>
+            <DatePicker 
+                SelectedDate="{Binding ElementName=DateEntryControl,Path=SelectedDate,Mode=TwoWay}" Margin="10 10 10 10"
+                 FontSize="12px"
+                 Padding="18 8"
+                 BorderThickness="1">
+                
+                <DatePicker.Resources>
+                    <Style TargetType="{x:Type DatePickerTextBox}">
+                        <Setter Property="Control.Template">
+                            <Setter.Value>
+                                <ControlTemplate>
+                                    <TextBox x:Name="DatePickerTextBox"
+                                    Text="{Binding Path=Text, RelativeSource={RelativeSource AncestorType={x:Type DatePicker}}}" />
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DatePicker.Resources>
+            </DatePicker>
+        </StackPanel>
+    </Grid>
+</UserControl>
