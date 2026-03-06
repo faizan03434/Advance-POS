@@ -1,0 +1,47 @@
+﻿<local:AbstractEntryForm x:Class="StationeryStoreManagementSystem.UI.CustomerForm"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
+             xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
+             xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="850" d:DesignWidth="810">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60px"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Components:TitleBlock Grid.Row="0" x:Name="titleBlock" Title="Add Customer"/>
+        <ScrollViewer x:Name="scrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid ScrollViewer.CanContentScroll="True">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Controls:TextEntry x:Name="firstNameField" IsRequired="True" Grid.Row="0" Grid.Column="0" Text="{Binding FirstName}" LabelText="First Name" MaxLength="30"/>
+                <Controls:TextEntry Grid.Row="0" Grid.Column="1" Text="{Binding LastName}" LabelText="Last Name" MaxLength="30"/>
+                <Controls:ComboBoxEntry x:Name="gender_cb" Grid.Row="1" Grid.Column="0" SelectedValue="{Binding Gender}" SelectedValuePath="Value" LabelText="Gender" />
+                <Controls:TextEntry x:Name="cnicField" IsRequired="True" Grid.Row="1" Grid.Column="1" Text="{Binding CNIC}" LabelText="CNIC" MaxLength="13"/>
+                <Controls:DateEntry Grid.Row="2" Grid.Column="0" SelectedDate="{Binding DateOfBirth}" LabelText="Date of Birth"/>
+                <Controls:TextEntry x:Name="contactField" IsRequired="True" Grid.Row="2" Grid.Column="1" Text="{Binding Contact}" LabelText="Contact Number" MaxLength="11"/>
+                <Controls:TextEntry Grid.Row="3" Grid.Column="0" Text="{Binding StreetAddress}" LabelText="Street Address" MaxLength="25"/>
+                <Controls:TextEntry Grid.Row="3" Grid.Column="1" Text="{Binding Town}" LabelText="Town" MaxLength="25"/>
+                <Controls:ComboBoxEntry x:Name="city_cb" Grid.Row="4" Grid.Column="0" SelectedValue="{Binding City}" SelectedValuePath="Value" LabelText="City"/>
+                <Controls:TextEntry Grid.Row="4" Grid.Column="1" Text="{Binding PostalCode}" LabelText="Postal Code" MaxLength="6"/>
+                <Button x:Name="ConfirmButton" Grid.Row="5" Grid.Column="0" Height="50" Width="100" HorizontalAlignment="Right" Margin="0 0 30 0" Content="Add" Click="ConfirmButton_Click"/>
+                <Button Grid.Row="5" Grid.Column="1" Height="50" Width="100" HorizontalAlignment="Left" Margin="30 0 0 0" Content="Cancel" Click="CancelButton_Click"/>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</local:AbstractEntryForm>

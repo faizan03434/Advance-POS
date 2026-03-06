@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="StationeryStoreManagementSystem.UI.Profile"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
+             xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
+             mc:Ignorable="d" 
+             d:DesignHeight="570" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60px"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Components:TitleBlock Grid.Row="0" x:Name="titleBlock" Title="Profile"/>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid ScrollViewer.CanContentScroll="True">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Controls:TextEntry Grid.Row="0" Grid.Column="0" x:Name="name" LabelText="Full Name" MaxLength="30" IsReadOnly="True"/>
+                <Controls:TextEntry Grid.Row="0" Grid.Column="1" Text="{Binding Email}" LabelText="Email" MaxLength="50" IsReadOnly="True"/>
+
+                <Controls:TextEntry Grid.Row="1" Grid.Column="0" Text="{Binding CNIC}" LabelText="CNIC" MaxLength="13" IsReadOnly="True"/>
+                <Controls:TextEntry Grid.Row="1" Grid.Column="1" Text="{Binding Contact}" LabelText="Contact Number" MaxLength="11" IsReadOnly="True"/>
+
+                <Controls:TextEntry x:Name="password_box" Grid.Row="3" Grid.Column="0" LabelText="New Password" MaxLength="5" />
+                <Button x:Name="ChangePassword" Grid.Row="3" Grid.Column="1" Height="60" Width="250" HorizontalAlignment="Center" Content="Change Password" Click="ChangePasswordButton_Click"/>
+
+
+                <Button x:Name="LogoutButton" Grid.Row="4" Grid.Column="0" Height="50" Width="100" HorizontalAlignment="Right" Margin="0 0 30 0" Content="Logout" Click="LogoutButton_Click"/>
+                <Button Grid.Row="4" Grid.Column="1" Height="50" Width="100" HorizontalAlignment="Left" Margin="30 0 0 0" Content="Back" Click="BackButton_Click"/>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

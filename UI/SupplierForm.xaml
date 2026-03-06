@@ -1,0 +1,67 @@
+﻿<local:AbstractEntryForm x:Class="StationeryStoreManagementSystem.UI.SupplierForm"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
+             xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
+             xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="1350" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60px"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Components:TitleBlock Grid.Row="0" x:Name="titleBlock" Title="Add Supplier"/>
+        <ScrollViewer x:Name="scrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid ScrollViewer.CanContentScroll="True">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                    <Controls:TextEntry IsRequired="True" x:Name="NameField" Grid.Row="0" Grid.Column="0" Text="{Binding Name}"  LabelText="Name" MaxLength="30"/>
+                    <Controls:TextEntry IsRequired="True" x:Name="CodeField" Grid.Row="0" Grid.Column="1" Text="{Binding Code}"  LabelText="Code" MaxLength="3"/>
+                    <Controls:TextEntry IsRequired="True" x:Name="ContactField" Grid.Row="1" Grid.Column="0" Text="{Binding Contact}" LabelText="Contact Number" MaxLength="30"/>
+                <Controls:TextEntry Grid.Row="1" Grid.Column="1" Text="{Binding Email}" LabelText="Email Address"/>
+                <Controls:ComboBoxEntry Grid.Row="2" Grid.Column="0" SelectedValue="{Binding Country}" SelectedValuePath="Value" x:Name="CountryField" SelectionChanged="CountryField_SelectionChanged" LabelText="Country"/>
+                <Controls:TextEntry Grid.Row="2" Grid.Column="1" Text="{Binding StreetAddress}" LabelText="Street Address" MaxLength="25"/>
+                <Controls:TextEntry Grid.Row="3" Grid.Column="0" Text="{Binding Town}" LabelText="Town" MaxLength="25"/>
+                <Controls:ComboBoxEntry Grid.Row="3" Grid.Column="1" SelectedValue="{Binding City}" SelectedValuePath="Value" x:Name="CityField" LabelText="City"/>
+                <Controls:TextEntry Grid.Row="4" Grid.Column="0" Text="{Binding PostalCode}" LabelText="Postal Code" MaxLength="6"/>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Controls:DataLabel Margin="30 30 0 00" FontSize="18" LabelData="Select Products"/>
+                    <Components:DataViewer Margin="50 -50 50 0" Height="400" Grid.Row="1" x:Name="productsDataHandler1"/>
+                    <Components:DataViewer Margin="50 -20 50 0" Height="400" Grid.Row="2" x:Name="productsDataHandler2"/>
+                </Grid>
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="ConfirmButton" Grid.Column="0" Height="50" Width="100" HorizontalAlignment="Right" Margin="0 0 30 0" Content="Add" Click="ConfirmButton_Click"/>
+                    <Button Grid.Column="1" Height="50" Width="100" HorizontalAlignment="Left" Margin="30 0 0 0" Content="Cancel" Click="CancelButton_Click"/>
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</local:AbstractEntryForm>
