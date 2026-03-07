@@ -7,6 +7,7 @@ using StationeryStoreManagementSystem.DL;
 
 namespace StationeryStoreManagementSystem.BL
 {
+    //checking push
     public class Admin : Employee
     {
         public Admin(string? firstname = null,
