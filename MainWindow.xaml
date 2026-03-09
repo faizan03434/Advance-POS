@@ -25,9 +25,7 @@
             <Button Margin="5 10 5 0" Height="40" Click="ManageSuppliersButton_Click">Manage Suppliers</Button>
             <Button Margin="5 10 5 0" Height="40" Click="ManageShipmentsButton_Click">Manage Shipments</Button>
             <Button Margin="5 10 5 0" Height="40" Click="ManageEmployeesButton_Click">Manage Employees</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ManageCustomersButton_Click">Manage Customers</Button>
             <Button Margin="5 10 5 0" Height="40" Click="ManageNotificationsButton_Click">Manage Notifications</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ManageRepaymentsButton_Click">Manage Repayments</Button>
             <Button Margin="5 10 5 0" Height="40" Click="ProfileButton_Click">Profile</Button>
             <Button Margin="5 10 5 0" Height="40" Click="SettingsButton_Click">Settings</Button>
 

@@ -47,9 +47,7 @@ namespace StationeryStoreManagementSystem
             new SideButton() { Content = "Manage Suppliers" },
             new SideButton() { Content = "Manage Shipments" },
             new SideButton() { Content = "Manage Employees" },
-            new SideButton() { Content = "Manage Customers" },
             new SideButton() { Content = "Manage Notifications" },
-            new SideButton() { Content = "Manage Repayments"},
             new SideButton() { Content = "Profile"},
             new SideButton() { Content = "Settings"}
         };
@@ -57,8 +55,6 @@ namespace StationeryStoreManagementSystem
         {
             new SideButton() { Content = "Dashboard"},
             new SideButton() { Content = "Process Order"},
-            new SideButton() { Content = "Manage Customers"},
-            new SideButton() { Content = "Manage Repayments"},
             new SideButton() { Content = "Profile"},
             new SideButton() { Content = "Settings"}
         };
@@ -208,27 +204,6 @@ namespace StationeryStoreManagementSystem
                                                 typeof(ViewShipment));
         }
 
-        private void ManageCustomersButton_Click(object sender, RoutedEventArgs e)
-        {
-            List<(string, string)> bindings = new List<(string, string)>
-            {
-                ("CNIC","CNIC"),
-                ("Name","Name"),
-                ("Contact","Contact"),
-                ("Gender","Gender")
-            };
-            if (GlobalSettings.DisplayIds == true)
-                bindings.Insert(0, ("Id", "Id"));
-            Content.Child = new UI.ManageEntity("Manage Customers",
-                                                typeof(Customer).Name,
-                                                CustomerDL.GetCustomersView,
-                                                bindings,
-                                                new List<string> { "Name" },
-                                                typeof(CustomerForm),
-                                                true,
-                                                true);
-        }
-
         private void ManageNotificationsButton_Click(object sender, RoutedEventArgs e)
         {
             List<(string, string)> bindings = new List<(string, string)>
@@ -250,28 +225,6 @@ namespace StationeryStoreManagementSystem
                                                 null,
                                                 typeof(ViewNotification));
 
-        }
-        private void ManageRepaymentsButton_Click(object sender, RoutedEventArgs e)
-        {
-            List<(string, string)> bindings = new List<(string, string)>
-            {
-                ("Customer Name","Customer Name"),
-                ("CNIC","CNIC"),
-                ("Contact","Contact"),
-                ("Gender", "Gender"),
-                ("Registered On","Registered On"),
-                ("Total Pending","Total Pending")
-            };
-            if (GlobalSettings.DisplayIds == true)
-                bindings.Insert(0, ("Id", "Id"));
-            Content.Child = new UI.ManageEntity("Accounts",
-                                                "PaymentDues",
-                                                CustomerDL.GetRepaymentsView,
-                                                bindings,
-                                                new List<string> { "Customer Name" },
-                                                typeof(RepaymentForm),
-                                                false,
-                                                true);
         }
         private void InitializeLogin()
         {
@@ -328,14 +281,8 @@ namespace StationeryStoreManagementSystem
                 case "Manage Shipments":
                     ManageShipmentsButton_Click(sender, e);
                     break;
-                case "Manage Customers":
-                    ManageCustomersButton_Click(sender, e);
-                    break;
                 case "Manage Notifications":
                     ManageNotificationsButton_Click(sender, e);
-                    break;
-                case "Manage Repayments":
-                    ManageRepaymentsButton_Click(sender, e);
                     break;
                 case "Settings":
                     SettingsButton_Click(sender, e);
