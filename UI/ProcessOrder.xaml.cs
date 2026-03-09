@@ -39,7 +39,7 @@ namespace StationeryStoreManagementSystem.UI
             {
                 vce.VideoCaptureSource = GlobalSettings.CameraName;
                 cameraTimer.IsEnabled = true;
-                cameraTimer.Interval = new TimeSpan(200);
+                cameraTimer.Interval = TimeSpan.FromMilliseconds(500);
                 cameraTimer.Tick += CameraTimer_Tick;
             }
 
