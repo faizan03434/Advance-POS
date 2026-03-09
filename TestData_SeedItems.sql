@@ -48,9 +48,19 @@ INSERT INTO [dbo].[PriceLog] ([ProductId], [SupplierId], [Price], [RetailPrice],
 VALUES (1, 1, 15.00, 25.00, 2.00, GETDATE());
 GO
 
--- 8. Stock (50 units)
+-- 8. Shop (required before stock can be added)
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Shop])
+BEGIN
+    SET IDENTITY_INSERT [dbo].[Shop] ON;
+    INSERT INTO [dbo].[Shop] ([Id], [Name], [Status], [Contact], [AddedOn])
+    VALUES (1, N'Main Branch', 1, N'03001112233', GETDATE());
+    SET IDENTITY_INSERT [dbo].[Shop] OFF;
+END
+GO
+
+-- 9. Stock (50 units)
 INSERT INTO [dbo].[SupplierStock] ([SupplierId], [ProductId], [Stock], [Description], [AddedOn], [ShopId], [IsShipment])
-VALUES (1, 1, 50, N'Initial stock', GETDATE(), (SELECT TOP(1) Id FROM Shop), 0);
+VALUES (1, 1, 50, N'Initial stock', GETDATE(), 1, 0);
 GO
 
 -- =============================================
