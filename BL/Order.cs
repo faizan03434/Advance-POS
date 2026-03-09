@@ -53,7 +53,7 @@ namespace StationeryStoreManagementSystem.BL
                 Discount = discount;
             }
         }
-        public Customer? Customer { get; set; }
+        public string CustomerName { get; set; }
         public List<OrderProduct> Products;
         private Dictionary<string, Product> productsLookup;
         public double GrandTotal

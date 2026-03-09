@@ -1,32 +1,24 @@
-﻿using Microsoft.Data.SqlClient.Server;
+using Microsoft.Data.SqlClient.Server;
 using Microsoft.IdentityModel.Tokens;
 using StationeryStoreManagementSystem.BL;
 using StationeryStoreManagementSystem.DL;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
-using WPFMediaKit;
 using WPFMediaKit.DirectShow.Controls;
 using ZXing;
 using ZXing.Windows.Compatibility;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace StationeryStoreManagementSystem.UI
 {
@@ -38,7 +30,6 @@ namespace StationeryStoreManagementSystem.UI
         DispatcherTimer cameraTimer = new DispatcherTimer();
         BarcodeReader codeReader = new BarcodeReader();
         Order order;
-        Customer customer;
         int invoiceNumber = -1;
         int cooldown = 0;
         public ProcessOrder()
@@ -77,40 +68,6 @@ namespace StationeryStoreManagementSystem.UI
             ProductDataGrid.CanUserAddRows = false;
 
             DataContext = order;
-
-
-
-            List<(string, string)> bindings2 = new List<(string, string)>
-            {
-                ("CNIC","CNIC"),
-                ("Name","Name"),
-                ("Contact","Contact"),
-                ("Gender","Gender")
-            };
-            dataGridView.SetBindings(bindings2);
-            dataGridView.SearchAttributes = new List<string>() { "Name" };
-            dataGridView.IsSelect = true;
-            dataGridView.Refresh(CustomerDL.GetCustomersView());
-            dataGridView.SelectButtonClicked += DataGridView_SelectButtonClicked;
-
-
-
-
-            gender_cb.ItemSource = DataHandler.LookupData("Gender");
-            gender_cb.DisplayPathName = "Value";
-            city_cb.ItemSource = DataHandler.LookupData("CityPakistan");
-            city_cb.DisplayPathName = "Value";
-
-            ConfirmButton.Content = "Add";
-            titleBlock.Title = "Add Customer";
-        }
-        private void DataGridView_SelectButtonClicked(DataGrid dataGrid, int selectedIndex)
-        {
-            object id = ((DataView)(dataGrid.ItemsSource))[selectedIndex].Row.ItemArray[0];
-            order.Customer = CustomerDL.GetCustomer((int)id);
-            customerLabel.TextData = order.Customer.Name;
-            getCustomerGrid.Visibility = Visibility.Collapsed;
-            gridMain.Visibility = Visibility.Visible;
         }
         private void CameraTimer_Tick(object? sender, EventArgs e)
         {
@@ -157,7 +114,6 @@ namespace StationeryStoreManagementSystem.UI
         private void ProductDataGrid_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
         {
             refreshData();
-
         }
         private void refreshData()
         {
@@ -171,20 +127,18 @@ namespace StationeryStoreManagementSystem.UI
         {
             if (receivedField.Text.IsNullOrEmpty())
                 return;
-            if ((double.Parse(receivedField.Text) - double.Parse(totalLabel.TextData) < 0))
+            if (double.Parse(receivedField.Text) < double.Parse(totalLabel.TextData))
             {
-                if (order.Customer == null)
-                    return;
-                else
-                    returnField.Text = 0.ToString();
+                MessageBox.Show("Insufficient payment amount.", "Payment Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
-            else
-                returnField.Text = (double.Parse(receivedField.Text) - double.Parse(totalLabel.TextData)).ToString();
-            if (SaveOrder(ref invoiceNumber) == true && invoiceNumber!=-1)
+            returnField.Text = (double.Parse(receivedField.Text) - double.Parse(totalLabel.TextData)).ToString();
+            order.CustomerName = customerNameField.Text.IsNullOrEmpty() ? null : customerNameField.Text.Trim();
+            if (SaveOrder(ref invoiceNumber) == true && invoiceNumber != -1)
             {
                 var document = new PrintDocument();
                 document.DefaultPageSettings.PaperSize = new PaperSize("Customer Size", 50, 100);
-                if(!GlobalSettings.PrinterName.IsNullOrEmpty())
+                if (!GlobalSettings.PrinterName.IsNullOrEmpty())
                     document.DefaultPageSettings.PrinterSettings.PrinterName = GlobalSettings.PrinterName;
                 document.PrintPage += new PrintPageEventHandler(BillContent);
                 document.Print();
@@ -196,6 +150,7 @@ namespace StationeryStoreManagementSystem.UI
             order = new Order();
             invoiceNumber = -1;
             DataContext = order;
+            customerNameField.Text = string.Empty;
             refreshData();
         }
         public bool SaveOrder(ref int invoiceNumber)
@@ -225,25 +180,7 @@ namespace StationeryStoreManagementSystem.UI
             });
             objs.Add(("OrderProducts", "udtt_OrderProducts", SqlDbType.Structured, products));
             objs.Add(("EmployeeId", null, SqlDbType.Int, Utils.CurrentEmployee.Id));
-            objs.Add(("CustomerId", null, SqlDbType.Int,order.Customer?.Id));
-            if (order.Customer != null)
-            {
-                if (deductExtraCheckBox.IsChecked == true)
-                {
-                    double remainingAmount = double.Parse(receivedField.Text) - double.Parse(totalLabel.TextData);
-                    if (order.Customer.PaymentDues <= remainingAmount)
-                        objs.Add(("PaymentDues", null, SqlDbType.Money, order.Customer.PaymentDues.ToString()));
-                    else if (order.Customer.PaymentDues > remainingAmount)
-                        objs.Add(("PaymentDues", null, SqlDbType.Money, remainingAmount.ToString()));
-
-                }
-                else if((double.Parse(receivedField.Text) - double.Parse(totalLabel.TextData))>0)
-                    objs.Add(("PaymentDues", null, SqlDbType.Money, null));
-                else
-                    objs.Add(("PaymentDues", null, SqlDbType.Money, (-1*Math.Abs(double.Parse(totalLabel.TextData)-double.Parse(receivedField.Text))).ToString()));
-            }
-            else
-                objs.Add(("PaymentDues", null, SqlDbType.Money, null));
+            objs.Add(("CustomerName", null, SqlDbType.NVarChar, order.CustomerName));
             invoiceNumber = (int)DataHandler.BulkDataExecuteSP("stpInsertOrder", objs);
             return true;
         }
@@ -263,8 +200,8 @@ namespace StationeryStoreManagementSystem.UI
             builder.AppendLine();
             builder.AppendLine();
             builder.AppendLine($"Invoice Number: {invoiceNumber}");
-            if(order.Customer !=null)
-                builder.AppendLine($"Customer Name: {order.Customer.Name}");
+            if (!string.IsNullOrEmpty(order.CustomerName))
+                builder.AppendLine($"Customer Name: {order.CustomerName}");
             builder.AppendLine($"Processed By: {Utils.CurrentEmployee.Name}");
             builder.AppendLine($"Dated: {DateTime.Now}");
             builder.AppendLine();
@@ -289,46 +226,14 @@ namespace StationeryStoreManagementSystem.UI
             builder.AppendLine();
             builder.AppendLine($"Grand Total: {totalLabel.TextData} Rs");
             builder.AppendLine($"Received: {receivedField.Text} Rs");
-            if(int.Parse(receivedField.Text)<int.Parse(totalLabel.TextData))
-                builder.AppendLine($"Total Payable: {receivedField.Text} Rs");
-            else
-                builder.AppendLine($"Total Payable: {totalLabel.TextData} Rs");
+            builder.AppendLine($"Total Payable: {totalLabel.TextData} Rs");
             builder.AppendLine();
             builder.AppendLine();
             builder.AppendLine("Thank you for Shopping here!".PadRight(10));
 
             builder.AppendLine("=========================================================");
-            graphics.DrawString("Stationary Shop".PadLeft(25), new Font("Courier New", 18), brush, new PointF(startX, startY + Offset+10));
+            graphics.DrawString("Stationary Shop".PadLeft(25), new Font("Courier New", 18), brush, new PointF(startX, startY + Offset + 10));
             graphics.DrawString(builder.ToString(), font, brush, new PointF(startX, startY + Offset));
-        }
-
-        private void searchCustomerButton_Click(object sender, RoutedEventArgs e)
-        {
-            gridMain.Visibility = Visibility.Collapsed;
-            getCustomerGrid.Visibility = Visibility.Visible;
-        }
-
-        private void newCustomerButton_Click(object sender, RoutedEventArgs e)
-        {
-            gridMain.Visibility = Visibility.Collapsed;
-            newCustomerFormGrid.Visibility = Visibility.Visible;
-            customer = new Customer();
-            newCustomerFormGrid.DataContext = customer;
-        }
-
-        private void ConfirmButton_Click_1(object sender, RoutedEventArgs e)
-        {
-            getCustomerGrid.Visibility = Visibility.Collapsed;
-            gridMain.Visibility = Visibility.Visible;
-            customer.Save(true);
-            order.Customer = customer;
-            customerLabel.TextData = order.Customer.Name;
-        }
-
-        private void CancelButton_Click_1(object sender, RoutedEventArgs e)
-        {
-            getCustomerGrid.Visibility = Visibility.Collapsed;
-            gridMain.Visibility = Visibility.Visible;
         }
     }
 }
