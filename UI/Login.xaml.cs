@@ -39,7 +39,7 @@ namespace StationeryStoreManagementSystem.UI
         private void button_Click(object sender, RoutedEventArgs e)
         {
             username = username_tb.Text;
-            password = password_tb.Text;
+            password = password_tb.Password;
             int? id = IsValid();
 
             if (id != null)

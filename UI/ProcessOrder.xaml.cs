@@ -330,5 +330,11 @@ namespace StationeryStoreManagementSystem.UI
             getCustomerGrid.Visibility = Visibility.Collapsed;
             gridMain.Visibility = Visibility.Visible;
         }
+        private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            ScrollViewer scv = (ScrollViewer)sender;
+            scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
+            e.Handled = true;
+        }
     }
 }

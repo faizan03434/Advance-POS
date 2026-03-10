@@ -278,6 +278,7 @@ namespace StationeryStoreManagementSystem
             sideBar.Children.Clear();
             sideBar.Visibility = Visibility.Collapsed;
             col1.Width = new GridLength(0, GridUnitType.Star);
+
             Login login = new Login();
             Content.Child = login;
             login.LoginClicked += SetButtons;

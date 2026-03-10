@@ -131,9 +131,9 @@ namespace StationeryStoreManagementSystem.UI
 
         private void CashierChart() 
         {
-            daily_row.Height = new GridLength(0);
-            weekly_row.Height = new GridLength(0);
-            report_row.Height = new GridLength(0);
+            daily_row.Visibility = Visibility.Collapsed;   // Line 134
+            weekly_row.Visibility = Visibility.Collapsed;  // Line 135
+            report_row.Visibility = Visibility.Collapsed;  // Line 136
             SqlDataReader monthly = Utils.ReadData($"SELECT DATEPART(WEEK, O.Timestamp) AS WeekNumber, SUM(OD.Price * OD.Quantity) AS TotalSales, SUM((OD.Price - PL.Price) * OD.Quantity) AS TotalProfit"+
                                                     $" FROM [Order] O"+
                                                     $" INNER JOIN OrderDetail OD ON O.Id = OD.OrderId"+
