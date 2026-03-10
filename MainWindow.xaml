@@ -4,73 +4,36 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StationeryStoreManagementSystem"
-        xmlns:ui="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+        xmlns:UserControl="clr-namespace:StationeryStoreManagementSystem.UI"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="Stationery Store Management System" Height="700" Width="1100">
-
-    <Window.Resources>
-        <Style TargetType="{x:Type ui:SideButton}">
-            <Setter Property="Margin" Value="12,8,12,8"/>
-            <Setter Property="Height" Value="55"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Foreground" Value="#E0E0E0"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ui:SideButton}">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#1A3A5A"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Trigger>
-                <Trigger Property="IsFocused" Value="True">
-                    <Setter Property="Background" Value="#FFD647"/>
-                    <Setter Property="Foreground" Value="#001F3F"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-    </Window.Resources>
-
-    <Grid Background="#F5F5DC"> 
+        Title="Stationery Store Management System" Height="650" Width="1000"
+        Style="{DynamicResource WindowStyle}">
+    <Grid>
         <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="240" x:Name="col1"/>
-                <ColumnDefinition Width="1" x:Name="col2"/> 
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" x:Name="col1"/>
+                <ColumnDefinition Width="10px" x:Name="col2"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <StackPanel x:Name="sideBar" Grid.Column="0" Width="auto" Orientation="Vertical">
+            <Button Margin="5 10 5 0" Height="40" Click="DashboardButton_Click">Dashboard</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="ProcessOrderButton_Click">Process Order</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="ManageCompaniesButton_Click">Manage Companies</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="ManageCategoriesButton_Click">Manage Categories</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="ManageProductButton_Click">Manage Products</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="ManageSuppliersButton_Click">Manage Suppliers</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="ManageShipmentsButton_Click">Manage Shipments</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="ManageEmployeesButton_Click">Manage Employees</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="ManageNotificationsButton_Click">Manage Notifications</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="ProfileButton_Click">Profile</Button>
+            <Button Margin="5 10 5 0" Height="40" Click="SettingsButton_Click">Settings</Button>
 
-            <Border Grid.Column="0" Background="#001F3F" CornerRadius="0,20,20,0">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Margin="0,40,0,20">
-                        <TextBlock Text="MENU" 
-               Foreground="#FFD647" 
-               FontSize="26" 
-               FontWeight="ExtraBold" 
-               HorizontalAlignment="Center"/>
-
-                        <Separator Margin="40,15" Background="#FFD647" Opacity="0.4" Height="1"/>
-                    </StackPanel>
-
-                    <ScrollViewer VerticalScrollBarVisibility="Hidden">
-                        <StackPanel x:Name="sideBar" Orientation="Vertical"/>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
-
-            <Border x:Name="Content" Grid.Column="2" Background="Transparent" Margin="10"/>
+            </StackPanel>
+        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" x:Name="gridSplitter"/>
+        <Border x:Name="Content" Grid.Column="2"/>
         </Grid>
-
-        <Border x:Name="overlay" Background="#99000000" Visibility="Hidden"/>
+        <Border x:Name="overlay" Background="#59000000" BorderThickness="0" Visibility="Hidden">
+        </Border>
     </Grid>
 </Window>

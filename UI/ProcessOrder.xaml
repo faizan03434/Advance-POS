@@ -5,205 +5,93 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
              xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
-             xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
+			 xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
              xmlns:wpfmedia="http://git.jerry-shaw.top/jerryshaw/WPFMediaKit"
              mc:Ignorable="d" 
              d:DesignHeight="800" d:DesignWidth="800">
-
-    <ScrollViewer VerticalScrollBarVisibility="Auto" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" PanningMode="Both">
-        <StackPanel>
-            <StackPanel.Resources>
-                <Style TargetType="TextBox">
-                    <Setter Property="Background" Value="White"/>
-                    <Setter Property="Foreground" Value="Black"/>
-                    <Setter Property="VerticalContentAlignment" Value="Center"/>
-                    <Setter Property="Padding" Value="5,0,0,0"/>
-                </Style>
-                <Style TargetType="CheckBox">
-                    <Setter Property="Background" Value="White"/>
-                    <Setter Property="BorderBrush" Value="#B5B0B0"/>
-                    <Setter Property="BorderThickness" Value="1"/>
-                    <Setter Property="VerticalContentAlignment" Value="Center"/>
-                    <Setter Property="Margin" Value="10,0"/>
-                </Style>
-                <Style x:Key="CardBorderStyle" TargetType="Border">
-                    <Setter Property="Background" Value="White"/>
-                    <Setter Property="CornerRadius" Value="10"/>
-                    <Setter Property="Padding" Value="15"/>
-                    <Setter Property="Margin" Value="20,10"/>
-                    <Setter Property="Effect">
-                        <Setter.Value>
-                            <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.1" Color="Black"/>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </StackPanel.Resources>
-
-            <Grid x:Name="gridMain">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="60"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="130"/>
-                </Grid.RowDefinitions>
-
-                <Border Grid.Row="0" CornerRadius="5" Margin="0,0,0,5">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                            <GradientStop Color="#001F3F" Offset="0"/>
-                            <GradientStop Color="#003366" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <Components:TitleBlock Title="Process Order" Foreground="#FFD647" Background="Transparent"/>
-                </Border>
-
-                <Grid Grid.Row="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="120"/>
-                        <RowDefinition Height="70"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <Grid Grid.Row="0" Margin="10">
+    <StackPanel>
+        
+    <Grid x:Name="gridMain">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition/>
+            <RowDefinition Height="130"/>
+        </Grid.RowDefinitions>
+        <Components:TitleBlock Title="Process Order"/>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="120"/>
+                <RowDefinition Height="70"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Margin="5 10 5 10">
+                    <Grid Background="#33000000">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition/>
+                            <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-
-                        <Grid Grid.Column="0" Background="Transparent" Margin="5">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <Controls:TextEntry x:Name="productIdField" LabelText="Product ID" Grid.Column="0" MaxLength="8" Background="#DEDEDE"/>
-                            <Controls:TextEntry x:Name="quantityField" LabelText="Quantity" Grid.Column="1" Background="#DEDEDE"/>
-                            <Button Content="Add" x:Name="addButton" Background="#28A745" Foreground="White" Height="35" Margin="10" VerticalAlignment="Bottom" Grid.Column="2" Click="addButton_Click"/>
-                        </Grid>
-
-                        <Grid Grid.Column="1" Background="Transparent" Margin="5">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <Controls:TextEntry IsRequired="True" x:Name="receivedField" LabelText="Received" Background="#DEDEDE" Grid.Column="0"/>
-                            <Controls:TextEntry x:Name="returnField" LabelText="Return" Background="#DEDEDE" IsReadOnly="True" Grid.Column="1"/>
-                            <Button Content="Confirm Order" x:Name="confirmButton" Background="#28A745" Foreground="White" Height="35" Margin="10" VerticalAlignment="Bottom" Grid.Column="2" Click="confirmButton_Click"/>
-                        </Grid>
+                        <Controls:TextEntry x:Name="productIdField" LabelText="Product ID" MinWidth="140" Grid.Column="0" MaxLength="8"/>
+                        <Controls:TextEntry x:Name="quantityField" LabelText="Quantity" MinWidth="140" Grid.Column="1"/>
+                        <Button Content="Add" x:Name="addButton" Height="30" Margin="15" Width="60" VerticalAlignment="Bottom" Grid.Column="2" Click="addButton_Click"/>
                     </Grid>
-
-                    <Border Grid.Row="1" Margin="10,5,10,10" CornerRadius="8">
-                        <Border.Background>
-                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                <GradientStop Color="#001F3F" Offset="0"/>
-                                <GradientStop Color="#003366" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.Background>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="0.8*"/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <Controls:DataLabel Margin="15,10" x:Name="customerLabel" Foreground="White" Grid.Column="0" LabelData="Customer: " FontSize="18" VerticalAlignment="Center"/>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,10,0">
-                                <CheckBox x:Name="deductExtraCheckBox" Foreground="White" Content="Deduct Extra For Repayments" VerticalAlignment="Center"/>
-                                <Button x:Name="searchCustomerButton" Cursor="Hand" Background="#007BFF" Foreground="White" Content="Search Customer" Height="35" Width="120" Margin="10,0" Click="searchCustomerButton_Click"/>
-                                <Button x:Name="newCustomerButton" Cursor="Hand" Background="#007BFF" Foreground="White" Content="New Customer" Height="35" Width="110" Margin="5,0" Click="newCustomerButton_Click"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <DataGrid x:Name="ProductDataGrid" Height="300" Margin="20,20,20,0" Grid.Row="2" Background="White" ColumnWidth="*" HorizontalScrollBarVisibility="Disabled" RowEditEnding="ProductDataGrid_RowEditEnding">
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="Padding" Value="10,5"/>
-                                <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="Foreground" Value="Black"/>
-                                <Setter Property="Background" Value="#F0F0F0"/>
-                                <Setter Property="BorderBrush" Value="#D3D3D3"/>
-                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
-                        <DataGrid.Columns>
-                            <DataGridTemplateColumn x:Name="SelectColumn" Width="Auto">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button x:Name="RemoveButton" Background="#DC3545" Foreground="White" Width="70" Click="RemoveButton_Click">Remove</Button>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
-
-                <Border Grid.Row="2" CornerRadius="8" Margin="0,15,0,0">
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                            <GradientStop Color="#001F3F" Offset="0"/>
-                            <GradientStop Color="#003366" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <StackPanel Orientation="Horizontal">
-                        <wpfmedia:VideoCaptureElement x:Name="vce" Width="200" Height="130" DesiredPixelWidth="640" DesiredPixelHeight="480"/>
-                        <Grid VerticalAlignment="Center">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Orientation="Horizontal" Margin="40,0">
-                                <Controls:DataLabel Foreground="#FFD647" FontSize="26" FontWeight="Bold" LabelData="Saved: " x:Name="savedLabel"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="60,0">
-                                <Controls:DataLabel Foreground="#FFD647" FontSize="26" FontWeight="Bold" LabelData="Total: " x:Name="totalLabel"/>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
                 </Border>
-            </Grid>
-            <Grid x:Name="getCustomerGrid" Visibility="Collapsed">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="60"/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <Components:TitleBlock x:Name="TitleBlock" Title="Get Customer" Grid.Row="0"/>
-                <Components:DataViewer x:Name="dataGridView" Grid.Row="1"/>
-            </Grid>
-
-            <Grid x:Name="newCustomerFormGrid" Visibility="Hidden">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="60"/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <Components:TitleBlock Grid.Row="0" x:Name="titleBlock" Title="Add Customer"/>
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <Grid Background="White" Margin="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
+                <Border  Margin="5 10 5 10" Grid.Column="1">
+                    <Grid Background="#33000000">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition/>
+                            <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <Controls:TextEntry Grid.Row="0" Grid.Column="0" Text="{Binding FirstName}" LabelText="First Name" MaxLength="30"/>
-                        <Controls:TextEntry Grid.Row="0" Grid.Column="1" Text="{Binding LastName}" LabelText="Last Name" MaxLength="30"/>
-                        <Controls:ComboBoxEntry x:Name="gender_cb" Grid.Row="1" Grid.Column="0" SelectedValue="{Binding Gender}" SelectedValuePath="Value" LabelText="Gender" />
-                        <Controls:TextEntry Grid.Row="1" Grid.Column="1" Text="{Binding CNIC}" LabelText="CNIC" MaxLength="13"/>
-                        <Controls:DateEntry Grid.Row="2" Grid.Column="0" SelectedDate="{Binding DateOfBirth}" LabelText="Date of Birth"/>
-                        <Controls:TextEntry Grid.Row="2" Grid.Column="1" Text="{Binding Contact}" LabelText="Contact Number" MaxLength="11"/>
-                        <Controls:TextEntry Grid.Row="3" Grid.Column="0" Text="{Binding StreetAddress}" LabelText="Street Address" MaxLength="25"/>
-                        <Controls:TextEntry Grid.Row="3" Grid.Column="1" Text="{Binding Town}" LabelText="Town" MaxLength="25"/>
-                        <Controls:ComboBoxEntry x:Name="city_cb" Grid.Row="4" Grid.Column="0" SelectedValue="{Binding City}" SelectedValuePath="Value" LabelText="City"/>
-                        <Controls:TextEntry Grid.Row="4" Grid.Column="1" Text="{Binding PostalCode}" LabelText="Postal Code" MaxLength="6"/>
-                        <Button x:Name="ConfirmButton" Background="#28A745" Foreground="White" Grid.Row="5" Grid.Column="0" Height="50" Width="100" HorizontalAlignment="Right" Margin="0 0 30 0" Content="Add" Click="ConfirmButton_Click_1"/>
-                        <Button Background="#DC3545" Foreground="White" Grid.Row="5" Grid.Column="1" Height="50" Width="100" HorizontalAlignment="Left" Margin="30 0 0 0" Content="Cancel" Click="CancelButton_Click_1"/>
+                        <Controls:TextEntry IsRequired="True" x:Name="receivedField" LabelText="Received" MinWidth="140" Grid.Column="0"/>
+                        <Controls:TextEntry x:Name="returnField" LabelText="Return" MinWidth="140" IsReadOnly="True" Grid.Column="1"/>
+                        <Button Content="Confirm Order" x:Name="confirmButton" Height="30" Margin="15" VerticalAlignment="Bottom" Grid.Column="2" Click="confirmButton_Click"/>
                     </Grid>
-                </ScrollViewer>
+                </Border>
             </Grid>
-        </StackPanel>
-    </ScrollViewer>
+            <DataGrid x:Name="ProductDataGrid" Height="300" Margin="20 20 20 0" Grid.Row="2" RowEditEnding="ProductDataGrid_RowEditEnding">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn x:Name="SelectColumn">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="RemoveButton" Margin="0 0 2px 0" Width="70px" FontSize="14" Click="RemoveButton_Click">Remove</Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            <Border Grid.Row="1" Background="#33000000" Margin="10 -10 10 10">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
+                    <TextBlock Text="Customer Name:" FontSize="16" VerticalAlignment="Center" Foreground="White" Margin="0 0 10 0"/>
+                    <TextBox x:Name="customerNameField" Width="250" Height="30" FontSize="14" VerticalContentAlignment="Center" MaxLength="50"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+        <Border Grid.Row="2" Background="#33000000">
+            <StackPanel Orientation="Horizontal">
+                <wpfmedia:VideoCaptureElement
+                                      x:Name="vce"
+                                      DesiredPixelWidth="640"
+                                      DesiredPixelHeight="480"
+                                      Width="200"
+                                      Height="130"/>
+                <Grid VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Controls:DataLabel Margin="10" FontSize="24" LabelData="Saved: " x:Name="savedLabel"/>
+            <Controls:DataLabel Margin="150 10 10 10" Grid.Column="1" FontSize="24" LabelData="Total: " x:Name="totalLabel"/>
+        </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+    </StackPanel>
 </UserControl>
