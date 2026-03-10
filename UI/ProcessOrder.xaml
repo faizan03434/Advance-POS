@@ -36,9 +36,19 @@
                             <ColumnDefinition/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <Controls:TextEntry x:Name="productIdField" LabelText="Product ID" MinWidth="140" Grid.Column="0" MaxLength="8"/>
-                        <Controls:TextEntry x:Name="quantityField" LabelText="Quantity" MinWidth="140" Grid.Column="1"/>
-                        <Button Content="Add" x:Name="addButton" Height="30" Margin="15" Width="60" VerticalAlignment="Bottom" Grid.Column="2" Click="addButton_Click"/>
+                            <Controls:SearchBar x:Name="productIdField" 
+                    Grid.Column="0" 
+                    MinWidth="100" 
+                    Height="30"
+                    Margin="10"
+                    KeyUp="productIdField_KeyUp"/>
+                            <Controls:TextEntry x:Name="quantityField" 
+                    Text="1" 
+                    LabelText="Quantity" 
+                    Grid.Column="1" 
+                    MinWidth="140" 
+                    KeyUp="quantityField_KeyUp"/>
+                            <Button Content="Add" x:Name="addButton" Height="30" Margin="15" Width="60" VerticalAlignment="Bottom" Grid.Column="2" Click="addButton_Click"/>
                     </Grid>
                 </Border>
                 <Border  Margin="5 10 5 10" Grid.Column="1">
@@ -48,8 +58,12 @@
                             <ColumnDefinition/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <Controls:TextEntry IsRequired="True" x:Name="receivedField" LabelText="Received" MinWidth="140" Grid.Column="0"/>
-                        <Controls:TextEntry x:Name="returnField" LabelText="Return" MinWidth="140" IsReadOnly="True" Grid.Column="1"/>
+                            <Controls:TextEntry x:Name="receivedField" 
+                    LabelText="Received" 
+                    Grid.Column="0" 
+                    MinWidth="140" 
+                    KeyUp="receivedField_KeyUp"/>
+                            <Controls:TextEntry x:Name="returnField" LabelText="Return" MinWidth="140" IsReadOnly="True" Grid.Column="1"/>
                         <Button Content="Confirm Order" x:Name="confirmButton" Height="30" Margin="15" VerticalAlignment="Bottom" Grid.Column="2" Click="confirmButton_Click"/>
                     </Grid>
                 </Border>
@@ -70,8 +84,12 @@
             <Border Grid.Row="1" Background="#33000000" Margin="10 -10 10 10">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
                     <TextBlock Text="Customer Name:" FontSize="16" VerticalAlignment="Center" Foreground="White" Margin="0 0 10 0"/>
-                    <TextBox x:Name="customerNameField" Width="250" Height="30" FontSize="14" VerticalContentAlignment="Center" MaxLength="50"/>
-                </StackPanel>
+                        <TextBox x:Name="customerNameField" 
+         Width="250" Height="30" 
+         FontSize="14" 
+         KeyUp="customerNameField_KeyUp" 
+         MaxLength="50"/>
+                    </StackPanel>
             </Border>
         </Grid>
         <Border Grid.Row="2" Background="#33000000">
