@@ -131,16 +131,16 @@ namespace StationeryStoreManagementSystem.UI
 
         private void addButton_Click(object sender, RoutedEventArgs e)
         {
-            // SearchBar text is accessed via its SearchTextBox or a Text property if you added one
-            string pid = productIdField.SearchTextBox.Text;
-            if (string.IsNullOrEmpty(pid) || string.IsNullOrEmpty(quantityField.Text))
-                return;
+            //// SearchBar text is accessed via its SearchTextBox or a Text property if you added one
+            //string pid = productIdField.SearchTextBox.Text;
+            //if (string.IsNullOrEmpty(pid) || string.IsNullOrEmpty(quantityField.Text))
+            //    return;
 
-            order.AddProduct(pid, int.Parse(quantityField.Text));
+            //order.AddProduct(pid, int.Parse(quantityField.Text));
 
-            // Reset fields for next manual entry
-            productIdField.SearchTextBox.Text = string.Empty;
-            quantityField.Text = "1";
+            //// Reset fields for next manual entry
+            //productIdField.SearchTextBox.Text = string.Empty;
+            //quantityField.Text = "1";
 
             refreshData();
         }
