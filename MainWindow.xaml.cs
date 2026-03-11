@@ -37,6 +37,8 @@ namespace StationeryStoreManagementSystem
             if (DwmSetWindowAttribute(handle, 19, new[] { 1 }, 4) != 0)
                 DwmSetWindowAttribute(handle, 20, new[] { 1 }, 4);
         }
+
+        // UPDATE 1: Added Icons directly in the List initialization
         private List<SideButton> AdminBtns = new List<SideButton>()
         {
             new SideButton() { Content = "Dashboard"},
@@ -48,15 +50,16 @@ namespace StationeryStoreManagementSystem
             new SideButton() { Content = "Manage Shipments" },
             new SideButton() { Content = "Manage Employees" },
             new SideButton() { Content = "Manage Notifications" },
-            new SideButton() { Content = "Profile"},
-            new SideButton() { Content = "Settings"}
+            new SideButton() { Content = "👤 Profile"},   // Icon Added
+            new SideButton() { Content = "⚙ Settings"}    // Icon Added
         };
+
         private List<SideButton> CashierBtns = new List<SideButton>()
         {
             new SideButton() { Content = "Dashboard"},
             new SideButton() { Content = "Process Order"},
-            new SideButton() { Content = "Profile"},
-            new SideButton() { Content = "Settings"}
+            new SideButton() { Content = "👤 Profile"},   // Icon Added
+            new SideButton() { Content = "⚙ Settings"}    // Icon Added
         };
 
         public MainWindow()
@@ -68,6 +71,7 @@ namespace StationeryStoreManagementSystem
             GlobalSettings.LoadSettings();
             InitializeLogin();
         }
+
         private void ManageSuppliersButton_Click(object sender, RoutedEventArgs e)
         {
             List<(string, string)> bindings = new List<(string, string)>
@@ -96,7 +100,6 @@ namespace StationeryStoreManagementSystem
 
         private void ManageCompaniesButton_Click(object sender, RoutedEventArgs e)
         {
-            // Content.Child = new UI.ManageCompanies();
             List<(string, string)> bindings = new List<(string, string)>
             {
                 ("Company Name","Name")
@@ -226,6 +229,7 @@ namespace StationeryStoreManagementSystem
                                                 typeof(ViewNotification));
 
         }
+
         private void InitializeLogin()
         {
             sideBar.Children.Clear();
@@ -237,31 +241,36 @@ namespace StationeryStoreManagementSystem
             login.LoginClicked += SetButtons;
         }
 
+        // UPDATE 2: Applying XAML Style to Dynamic Buttons
         private void SetButtons(object sender, EventArgs e)
         {
             sideBar.Visibility = Visibility.Visible;
-            if (Utils.CurrentEmployee is Admin)
+            sideBar.Children.Clear(); // Clearing children to prevent duplicates on re-login
+
+            // Fetching the rounded yellow style from MainWindow.xaml
+            Style navStyle = (Style)this.FindResource("SideButtonStyle");
+
+            var buttonsToLoad = (Utils.CurrentEmployee is Admin) ? AdminBtns : CashierBtns;
+
+            foreach (Button btn in buttonsToLoad)
             {
-                foreach (Button btn in AdminBtns)
-                {
-                    sideBar.Children.Add(btn);
-                    btn.Click += ButtonClick;
-                }
+                btn.Style = navStyle; // <--- This line makes the button look beautiful
+
+                sideBar.Children.Add(btn);
+
+                // Unsubscribe first to prevent memory leak/multiple clicks triggering if logged in twice
+                btn.Click -= ButtonClick;
+                btn.Click += ButtonClick;
             }
-            else if (Utils.CurrentEmployee is Cashier)
-            {
-                foreach (Button btn in CashierBtns)
-                {
-                    sideBar.Children.Add(btn);
-                    btn.Click += ButtonClick;
-                }
-            }
+
             Content.Child = new Dashboard();
         }
+
         private void ButtonClick(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
 
+            // UPDATE 3: Added Icons to switch cases to avoid crashing
             switch (btn.Content.ToString())
             {
                 case "Manage Suppliers":
@@ -285,7 +294,7 @@ namespace StationeryStoreManagementSystem
                 case "Manage Notifications":
                     ManageNotificationsButton_Click(sender, e);
                     break;
-                case "Settings":
+                case "⚙ Settings": // Icon matching exactly
                     SettingsButton_Click(sender, e);
                     break;
                 case "Process Order":
@@ -294,7 +303,7 @@ namespace StationeryStoreManagementSystem
                 case "Dashboard":
                     DashboardButton_Click(sender, e);
                     break;
-                case "Profile":
+                case "👤 Profile": // Icon matching exactly
                     ProfileButton_Click(sender, e);
                     break;
             }

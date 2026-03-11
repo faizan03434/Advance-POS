@@ -12,13 +12,13 @@
 
             <Border Margin="0,0,0,15" Padding="25,20">
                 <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Color="#001F3F" Offset="0.0"/>
-                        <GradientStop Color="#002366" Offset="1.0"/>
+                        <GradientStop Color="#001429" Offset="1.0"/>
                     </LinearGradientBrush>
                 </Border.Background>
                 <Border.CornerRadius>
-                    <CornerRadius BottomLeft="20" BottomRight="20" TopLeft="0" TopRight="0"/>
+                    <CornerRadius BottomLeft="0" BottomRight="0" TopLeft="0" TopRight="0"/>
                 </Border.CornerRadius>
 
                 <Grid>
@@ -27,18 +27,23 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Dashboard Overview" FontSize="28" FontWeight="Bold" VerticalAlignment="Center" Foreground="#FFD647"/>
+                    <TextBlock Text="Dashboard Overview" 
+                   FontSize="22" 
+                   FontWeight="SemiBold" 
+                   VerticalAlignment="Center" 
+                   Foreground="White"/>
 
                     <Button x:Name="NotificationButton" 
-                            Grid.Column="1" 
-                            Width="50" 
-                            Height="50" 
-                            Click="NotificationButton_Click" 
-                            Background="Transparent" 
-                            BorderThickness="0"
-                            Cursor="Hand">
+                Grid.Column="1" 
+                Width="50" 
+                Height="50" 
+                Click="NotificationButton_Click" 
+                Background="Transparent" 
+                BorderThickness="0"
+                Cursor="Hand">
                         <Image Source="{DynamicResource ResourceKey=bellIcon}" 
-                                RenderOptions.BitmapScalingMode="HighQuality"/>
+                   RenderOptions.BitmapScalingMode="HighQuality"
+                   Opacity="0.9"/>
                     </Button>
                 </Grid>
             </Border>

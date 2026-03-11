@@ -3,37 +3,81 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:StationeryStoreManagementSystem"
-        xmlns:UserControl="clr-namespace:StationeryStoreManagementSystem.UI"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="Stationery Store Management System" Height="650" Width="1000"
-        Style="{DynamicResource WindowStyle}">
-    <Grid>
-        <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200" x:Name="col1"/>
-                <ColumnDefinition Width="10px" x:Name="col2"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <StackPanel x:Name="sideBar" Grid.Column="0" Width="auto" Orientation="Vertical">
-            <Button Margin="5 10 5 0" Height="40" Click="DashboardButton_Click">Dashboard</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ProcessOrderButton_Click">Process Order</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ManageCompaniesButton_Click">Manage Companies</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ManageCategoriesButton_Click">Manage Categories</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ManageProductButton_Click">Manage Products</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ManageSuppliersButton_Click">Manage Suppliers</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ManageShipmentsButton_Click">Manage Shipments</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ManageEmployeesButton_Click">Manage Employees</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ManageNotificationsButton_Click">Manage Notifications</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="ProfileButton_Click">Profile</Button>
-            <Button Margin="5 10 5 0" Height="40" Click="SettingsButton_Click">Settings</Button>
+        Title="Stationery Store Management System" Height="650" Width="1050">
 
-            </StackPanel>
-        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" x:Name="gridSplitter"/>
-        <Border x:Name="Content" Grid.Column="2"/>
-        </Grid>
-        <Border x:Name="overlay" Background="#59000000" BorderThickness="0" Visibility="Hidden">
+    <Window.Resources>
+        <SolidColorBrush x:Key="SidebarBlue" Color="#001F3F"/>
+        <SolidColorBrush x:Key="HighlightYellow" Color="#FFCC33"/>
+
+        <Style x:Key="SideButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Height" Value="45"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,0"/>
+            <Setter Property="Margin" Value="12,5,12,5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="12">
+                            <ContentPresenter VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#22FFFFFF"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource HighlightYellow}"/>
+                                <Setter Property="Foreground" Value="#001F3F"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="#F1F5F9">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" x:Name="col1"/>
+            <ColumnDefinition Width="0" x:Name="col2"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <GradientStop Color="#001F3F" Offset="0.0"/>
+                    <GradientStop Color="#000D1A" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="0,35,0,15">
+                    <TextBlock Text="MENU" Foreground="{StaticResource HighlightYellow}" 
+                       FontSize="28" FontWeight="Black" HorizontalAlignment="Center"/>
+                    <Rectangle Height="1.5" Fill="{StaticResource HighlightYellow}" 
+                       Width="130" Margin="0,15,0,10" Opacity="0.4"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
+                    <StackPanel x:Name="sideBar" Orientation="Vertical" Margin="0,10"/>
+                </ScrollViewer>
+            </Grid>
         </Border>
+        <Grid Grid.Column="2">
+            <Border x:Name="Content" Background="Transparent"/>
+            <Border x:Name="overlay" Background="#59000000" Visibility="Hidden"/>
+        </Grid>
     </Grid>
 </Window>

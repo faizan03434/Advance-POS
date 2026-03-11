@@ -5,93 +5,177 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
              xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
-			 xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
+             xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
              xmlns:wpfmedia="http://git.jerry-shaw.top/jerryshaw/WPFMediaKit"
              mc:Ignorable="d" 
-             d:DesignHeight="800" d:DesignWidth="800">
-    <StackPanel>
-        
-    <Grid x:Name="gridMain">
+             d:DesignHeight="800" d:DesignWidth="1100">
+
+    <Grid Background="#F5F5DC">
+        <Grid.Resources>
+            <LinearGradientBrush x:Key="NavyGradient" StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#001F3F" Offset="0"/>
+                <GradientStop Color="#001429" Offset="1"/>
+            </LinearGradientBrush>
+
+            <SolidColorBrush x:Key="AccentBlue" Color="#406882"/>
+            <SolidColorBrush x:Key="SuccessGreen" Color="#2D5D4E"/>
+            <SolidColorBrush x:Key="DangerRed" Color="#B33030"/>
+
+            <DropShadowEffect x:Key="CardShadow" BlurRadius="10" ShadowDepth="1" Opacity="0.1" Color="Black"/>
+
+            <Style x:Key="InputBoxStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="#D1D5DB"/>
+                <Setter Property="BorderBrush" Value="#9CA3AF"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="CaretBrush" Value="Black"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Padding" Value="5,0"/>
+            </Style>
+
+            <Style TargetType="Button" x:Key="ModernButton">
+                <Setter Property="Padding" Value="15,5"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Style.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="4"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+
+            <Style TargetType="DataGridColumnHeader">
+                <Setter Property="Background" Value="#E2E8F0"/>
+                <Setter Property="Foreground" Value="#1A374D"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Padding" Value="10,12"/>
+                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                <Setter Property="BorderBrush" Value="#CBD5E0"/>
+            </Style>
+        </Grid.Resources>
+
         <Grid.RowDefinitions>
-            <RowDefinition Height="60"/>
-            <RowDefinition/>
-            <RowDefinition Height="130"/>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="120"/>
         </Grid.RowDefinitions>
-        <Components:TitleBlock Title="Process Order"/>
-        <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="120"/>
-                <RowDefinition Height="70"/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Grid Margin="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Margin="5 10 5 10">
-                    <Grid Background="#33000000">
+
+        <Border Grid.Row="0" Background="{StaticResource NavyGradient}" Padding="25,0">
+            <TextBlock Text="Process Order" Foreground="White" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="15,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" CornerRadius="8" Margin="5" Effect="{StaticResource CardShadow}" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Product Selection" Foreground="#1A374D" FontWeight="Bold" Margin="0,0,0,15" FontSize="16"/>
+                    <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Controls:TextEntry x:Name="productIdField" LabelText="Product ID" MinWidth="140" Grid.Column="0" MaxLength="8"/>
-                        <Controls:TextEntry x:Name="quantityField" LabelText="Quantity" MinWidth="140" Grid.Column="1"/>
-                        <Button Content="Add" x:Name="addButton" Height="30" Margin="15" Width="60" VerticalAlignment="Bottom" Grid.Column="2" Click="addButton_Click"/>
+                        <StackPanel Margin="0,0,10,0">
+                            <TextBlock Text="Product ID" Foreground="#64748B" FontSize="12" Margin="0,0,0,5"/>
+                            <TextBox x:Name="productIdField" Height="35" MaxLength="8" Style="{StaticResource InputBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                            <TextBlock Text="Quantity" Foreground="#64748B" FontSize="12" Margin="0,0,0,5"/>
+                            <TextBox x:Name="quantityField" Height="35" Style="{StaticResource InputBoxStyle}"/>
+                        </StackPanel>
+                        <Button x:Name="addButton" Grid.Column="2" Content="ADD TO LIST" Style="{StaticResource ModernButton}" 
+                                Background= "#2E54B8" Foreground="White" Height="35" VerticalAlignment="Bottom" 
+                                Click="addButton_Click" Cursor="Hand"/>
                     </Grid>
-                </Border>
-                <Border  Margin="5 10 5 10" Grid.Column="1">
-                    <Grid Background="#33000000">
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Background="White" CornerRadius="8" Margin="5" Effect="{StaticResource CardShadow}" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Payment Details" Foreground="#1A374D" FontWeight="Bold" Margin="0,0,0,15" FontSize="16"/>
+                    <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Controls:TextEntry IsRequired="True" x:Name="receivedField" LabelText="Received" MinWidth="140" Grid.Column="0"/>
-                        <Controls:TextEntry x:Name="returnField" LabelText="Return" MinWidth="140" IsReadOnly="True" Grid.Column="1"/>
-                        <Button Content="Confirm Order" x:Name="confirmButton" Height="30" Margin="15" VerticalAlignment="Bottom" Grid.Column="2" Click="confirmButton_Click"/>
+                        <StackPanel Margin="0,0,10,0">
+                            <TextBlock Text="Cash Received" Foreground="#64748B" FontSize="12" Margin="0,0,0,5"/>
+                            <TextBox x:Name="receivedField" Height="35" Style="{StaticResource InputBoxStyle}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                            <TextBlock Text="Change Return" Foreground="#64748B" FontSize="12" Margin="0,0,0,5"/>
+                            <TextBox x:Name="returnField" Height="35" IsReadOnly="True" Opacity="0.8" Style="{StaticResource InputBoxStyle}"/>
+                        </StackPanel>
+                        <Button x:Name="confirmButton" Grid.Column="2" Content="CONFIRM ORDER" Style="{StaticResource ModernButton}" 
+                                Background="#2EB881" Foreground="White" Height="35" VerticalAlignment="Bottom" 
+                                Click="confirmButton_Click" Cursor="Hand"/>
                     </Grid>
-                </Border>
-            </Grid>
-            <DataGrid x:Name="ProductDataGrid" Height="300" Margin="20 20 20 0" Grid.Row="2" RowEditEnding="ProductDataGrid_RowEditEnding">
-                    <DataGrid.Columns>
-                        <DataGridTemplateColumn x:Name="SelectColumn">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Button x:Name="RemoveButton" Margin="0 0 2px 0" Width="70px" FontSize="14" Click="RemoveButton_Click">Remove</Button>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-            <Border Grid.Row="1" Background="#33000000" Margin="10 -10 10 10">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
-                    <TextBlock Text="Customer Name:" FontSize="16" VerticalAlignment="Center" Foreground="White" Margin="0 0 10 0"/>
-                    <TextBox x:Name="customerNameField" Width="250" Height="30" FontSize="14" VerticalContentAlignment="Center" MaxLength="50"/>
                 </StackPanel>
             </Border>
         </Grid>
-        <Border Grid.Row="2" Background="#33000000">
-            <StackPanel Orientation="Horizontal">
-                <wpfmedia:VideoCaptureElement
-                                      x:Name="vce"
-                                      DesiredPixelWidth="640"
-                                      DesiredPixelHeight="480"
-                                      Width="200"
-                                      Height="130"/>
-                <Grid VerticalAlignment="Center">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Controls:DataLabel Margin="10" FontSize="24" LabelData="Saved: " x:Name="savedLabel"/>
-            <Controls:DataLabel Margin="150 10 10 10" Grid.Column="1" FontSize="24" LabelData="Total: " x:Name="totalLabel"/>
-        </Grid>
+
+        <Border Grid.Row="2" Background="#EDF2F7" Margin="20,5" CornerRadius="5" BorderBrush="#CBD5E0" BorderThickness="1">
+            <StackPanel Orientation="Horizontal" Margin="20,12">
+                <TextBlock Text="Customer:" FontSize="14" Foreground="#4A5568" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                <TextBox x:Name="customerNameField" Width="350" Height="30" Padding="5,0" VerticalContentAlignment="Center" Background="White" Foreground="Black" CaretBrush="Black"/>
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="20,0" Background="#CBD5E0"/>
+                <CheckBox Content="Deduct Extra For Repayments" VerticalAlignment="Center" Foreground="#4A5568"/>
             </StackPanel>
         </Border>
+
+        <Border Grid.Row="3" Margin="20,10" Background="White" CornerRadius="8" Effect="{StaticResource CardShadow}">
+            <DataGrid x:Name="ProductDataGrid" AutoGenerateColumns="False" HeadersVisibility="Column" 
+              CanUserAddRows="False" Background="Transparent" GridLinesVisibility="Vertical" 
+              VerticalGridLinesBrush="#E2E8F0"
+              AlternatingRowBackground="#F1F5F9" AlternationCount="2">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="100"/>
+
+                    <DataGridTextColumn Header="Product" Binding="{Binding Product.Name}" Width="2.5*"/>
+                    <DataGridTextColumn Header="Company" Binding="{Binding Product.Company.Name}" Width="2*"/>
+
+                    <DataGridTextColumn Header="Price" Binding="{Binding UnitPrice}" Width="*"/>
+                    <DataGridTextColumn Header="Discount" Binding="{Binding Discount}" Width="*"/>
+                    <DataGridTextColumn Header="Total" Binding="{Binding TotalPrice}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80"/>
+
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <Border Grid.Row="4" Background="{StaticResource NavyGradient}">
+            <Grid Margin="30,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Width="160" Height="100" Margin="0,10" CornerRadius="4" ClipToBounds="True" Background="Black">
+                    <wpfmedia:VideoCaptureElement x:Name="vce" DesiredPixelWidth="640" DesiredPixelHeight="480"/>
+                </Border>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Margin="0,0,60,0">
+                        <TextBlock Text="TOTAL SAVED" Foreground="#8FA3AD" FontSize="12" HorizontalAlignment="Right"/>
+                        <Controls:DataLabel x:Name="savedLabel" LabelData="Rs. " FontSize="20" Foreground="#63B3ED"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="GRAND TOTAL" Foreground="White" FontSize="12" HorizontalAlignment="Right"/>
+                        <Controls:DataLabel x:Name="totalLabel" LabelData="Rs. " FontSize="36" Foreground="#F6AD55" FontWeight="Bold"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
-    </StackPanel>
 </UserControl>

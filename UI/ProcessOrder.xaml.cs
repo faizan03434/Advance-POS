@@ -22,9 +22,6 @@ using ZXing.Windows.Compatibility;
 
 namespace StationeryStoreManagementSystem.UI
 {
-    /// <summary>
-    /// Interaction logic for ProcessOrder.xaml
-    /// </summary>
     public partial class ProcessOrder : UserControl
     {
         DispatcherTimer cameraTimer = new DispatcherTimer();
@@ -32,9 +29,12 @@ namespace StationeryStoreManagementSystem.UI
         Order order;
         int invoiceNumber = -1;
         int cooldown = 0;
+
         public ProcessOrder()
         {
             InitializeComponent();
+
+            // Camera Logic (Original as it is)
             if (!GlobalSettings.CameraName.IsNullOrEmpty())
             {
                 vce.VideoCaptureSource = GlobalSettings.CameraName;
@@ -44,31 +44,16 @@ namespace StationeryStoreManagementSystem.UI
             }
 
             order = new Order();
-            List<(string, string, bool)> bindings = new List<(string, string, bool)>
-            {
-                    ("Product Code","Code",true),
-                    ("Product Name","Product.Name",true),
-                    ("Company Name","Product.Company.Name",true),
-                    ("Category", "Product.Category.Name", true),
-                    ("Price", "UnitPrice", true),
-                    ("Discount", "Discount", true),
-                    ("Total", "TotalPrice", true),
-                    ("Q.ty", "Quantity", false),
-            };
-            for (int i = bindings.Count - 1; i >= 0; i--)
-            {
-                DataGridTextColumn column = new DataGridTextColumn();
-                column.Header = bindings[i].Item1;
-                column.Binding = new Binding(bindings[i].Item2) { UpdateSourceTrigger = UpdateSourceTrigger.LostFocus };
-                column.IsReadOnly = bindings[i].Item3;
-                ProductDataGrid.Columns.Insert(0, column);
-            }
+
+            // FIXED: Maine wo loop hata diya jo DataGrid columns dobara generate kar raha tha.
+            // Ab aapki XAML wali 8 columns hi nazar ayengi aur headers bhi show honge.
             ProductDataGrid.AutoGenerateColumns = false;
             ProductDataGrid.ItemsSource = order.Products;
             ProductDataGrid.CanUserAddRows = false;
 
             DataContext = order;
         }
+
         private void CameraTimer_Tick(object? sender, EventArgs e)
         {
             if (cooldown > 0)
@@ -99,8 +84,12 @@ namespace StationeryStoreManagementSystem.UI
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
             int selectedIndex = ProductDataGrid.SelectedIndex;
-            order.RemoveProduct(selectedIndex);
-            refreshData();
+            // Safety check added
+            if (selectedIndex != -1)
+            {
+                order.RemoveProduct(selectedIndex);
+                refreshData();
+            }
         }
 
         private void addButton_Click(object sender, RoutedEventArgs e)
@@ -115,10 +104,13 @@ namespace StationeryStoreManagementSystem.UI
         {
             refreshData();
         }
+
         private void refreshData()
         {
             ProductDataGrid.ItemsSource = null;
             ProductDataGrid.ItemsSource = order.Products;
+
+            // Re-using your exact property names
             totalLabel.TextData = order.GrandTotal.ToString();
             savedLabel.TextData = order.SavedTotal.ToString();
         }
@@ -127,13 +119,17 @@ namespace StationeryStoreManagementSystem.UI
         {
             if (receivedField.Text.IsNullOrEmpty())
                 return;
+
+            // Logic original: Payment validation
             if (double.Parse(receivedField.Text) < double.Parse(totalLabel.TextData))
             {
                 MessageBox.Show("Insufficient payment amount.", "Payment Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
+
             returnField.Text = (double.Parse(receivedField.Text) - double.Parse(totalLabel.TextData)).ToString();
             order.CustomerName = customerNameField.Text.IsNullOrEmpty() ? null : customerNameField.Text.Trim();
+
             if (SaveOrder(ref invoiceNumber) == true && invoiceNumber != -1)
             {
                 var document = new PrintDocument();
@@ -145,6 +141,7 @@ namespace StationeryStoreManagementSystem.UI
                 clearOrder();
             }
         }
+
         public void clearOrder()
         {
             order = new Order();
@@ -153,20 +150,23 @@ namespace StationeryStoreManagementSystem.UI
             customerNameField.Text = string.Empty;
             refreshData();
         }
+
         public bool SaveOrder(ref int invoiceNumber)
         {
             if (receivedField.Text.IsNullOrEmpty())
                 return false;
+
             var objs = new List<(string, string, SqlDbType, object)>();
             SqlMetaData[] sqlMetas = new SqlMetaData[]
             {
-                    new SqlMetaData("ProductId",SqlDbType.Int),
-                    new SqlMetaData("SupplierId",SqlDbType.Int),
-                    new SqlMetaData("Price",SqlDbType.Money),
-                    new SqlMetaData("DiscountAmount",SqlDbType.Money),
-                    new SqlMetaData("TaxAmount",SqlDbType.Money),
-                    new SqlMetaData("Quantity",SqlDbType.Int),
+                new SqlMetaData("ProductId",SqlDbType.Int),
+                new SqlMetaData("SupplierId",SqlDbType.Int),
+                new SqlMetaData("Price",SqlDbType.Money),
+                new SqlMetaData("DiscountAmount",SqlDbType.Money),
+                new SqlMetaData("TaxAmount",SqlDbType.Money),
+                new SqlMetaData("Quantity",SqlDbType.Int),
             };
+
             var products = order.Products.Select(x =>
             {
                 SqlDataRecord record = new SqlDataRecord(sqlMetas);
@@ -178,12 +178,15 @@ namespace StationeryStoreManagementSystem.UI
                 record.SetInt32(5, x.Quantity);
                 return record;
             });
+
             objs.Add(("OrderProducts", "udtt_OrderProducts", SqlDbType.Structured, products));
             objs.Add(("EmployeeId", null, SqlDbType.Int, Utils.CurrentEmployee.Id));
             objs.Add(("CustomerName", null, SqlDbType.NVarChar, order.CustomerName));
+
             invoiceNumber = (int)DataHandler.BulkDataExecuteSP("stpInsertOrder", objs);
             return true;
         }
+
         public void BillContent(object sender, PrintPageEventArgs e)
         {
             Graphics graphics = e.Graphics;
@@ -213,6 +216,7 @@ namespace StationeryStoreManagementSystem.UI
             builder.Append("GST".PadRight(6));
             builder.Append("Total".PadRight(12));
             builder.AppendLine();
+
             foreach (var item in order.Products)
             {
                 builder.Append(item.Code.PadRight(12));
