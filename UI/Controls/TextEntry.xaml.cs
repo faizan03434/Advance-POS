@@ -167,7 +167,10 @@ namespace StationeryStoreManagementSystem.UI.Controls
         {
             e.Handled = !MatchesRules(e.Text);
         }
-
+        public new void Focus()
+        {
+            TextBoxText.Focus();
+        }
         private void TextBoxText_Pasting(object sender, DataObjectPastingEventArgs e)
         {
             if (e.DataObject.GetDataPresent(typeof(string)))
