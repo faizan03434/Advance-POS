@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="1000">
-
+             d:DesignHeight="600" d:DesignWidth="1000"
+             FocusManager.FocusedElement="{Binding ElementName=username_tb}">
     <Grid Background="#F0F2F5">
         <Border Margin="60" CornerRadius="30" Background="White">
             <Border.Effect>
@@ -20,16 +20,13 @@
 
                 <Border Grid.Column="0" CornerRadius="30,0,0,30" Background="#001F3F">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
-
                         <Ellipse Width="160" Height="160" Stroke="#FFC107" StrokeThickness="3" Margin="0,0,0,25">
                             <Ellipse.Fill>
                                 <ImageBrush ImageSource="/StationeryStoreManagementSystem;component/Resources/pos_station_icon.png" Stretch="UniformToFill"/>
                             </Ellipse.Fill>
                         </Ellipse>
-
                         <TextBlock Text="Advanced-POS and Store" Foreground="#FFC107" FontSize="30" FontWeight="ExtraBold" TextAlignment="Center" TextWrapping="Wrap"/>
                         <TextBlock Text="Management System" Foreground="White" FontSize="16" HorizontalAlignment="Center" Opacity="0.8"/>
-
                         <Rectangle Width="120" Height="2" Fill="#FFC107" Margin="0,25,0,0"/>
                     </StackPanel>
                 </Border>
@@ -40,11 +37,12 @@
 
                     <TextBlock Text="Username" Foreground="#001F3F" FontWeight="SemiBold" Margin="0,10,0,8"/>
                     <TextBox x:Name="username_tb" Height="45" Background="#E0E0E0" Foreground="#333" 
-                             BorderBrush="#001F3F" BorderThickness="0,0,0,2" Padding="12,0" VerticalContentAlignment="Center"/>
+                             BorderBrush="#001F3F" BorderThickness="0,0,0,2" Padding="12,0" VerticalContentAlignment="Center" Focusable="True" 
+                             IsTabStop="True" TabIndex="0" CaretBrush="Black"/>
 
                     <TextBlock Text="Password" Foreground="#001F3F" FontWeight="SemiBold" Margin="0,25,0,8"/>
-                    <TextBox x:Name="password_tb" Height="45" Background="#E0E0E0" Foreground="#333" 
-                             BorderBrush="#001F3F" BorderThickness="0,0,0,2" Padding="12,0" VerticalContentAlignment="Center"/>
+                    <PasswordBox x:Name="password_tb" Height="45" Background="#E0E0E0" Foreground="#333" CaretBrush="Black"
+                                 BorderBrush="#001F3F" BorderThickness="0,0,0,2" Padding="12,0" VerticalContentAlignment="Center"/>
 
                     <Button x:Name="button" Content="LOGIN" Height="50" Margin="0,45,0,0" 
                             Click="button_Click" Cursor="Hand">
@@ -57,9 +55,7 @@
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}" 
-                                                    CornerRadius="10" 
-                                                    BorderThickness="0">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="10" BorderThickness="0">
                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                             <ControlTemplate.Triggers>
