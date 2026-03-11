@@ -45,8 +45,7 @@ namespace StationeryStoreManagementSystem.UI
 
             order = new Order();
 
-            // FIXED: Maine wo loop hata diya jo DataGrid columns dobara generate kar raha tha.
-            // Ab aapki XAML wali 8 columns hi nazar ayengi aur headers bhi show honge.
+            
             ProductDataGrid.AutoGenerateColumns = false;
             ProductDataGrid.ItemsSource = order.Products;
             ProductDataGrid.CanUserAddRows = false;
