@@ -90,6 +90,19 @@
                         <Button x:Name="addButton" Grid.Column="2" Content="ADD TO LIST" Style="{StaticResource ModernButton}" 
                                 Background= "#2E54B8" Foreground="White" Height="35" VerticalAlignment="Bottom" 
                                 Click="addButton_Click" Cursor="Hand"/>
+                            <Controls:SearchBar x:Name="productIdField" 
+                    Grid.Column="0" 
+                    MinWidth="100" 
+                    Height="30"
+                    Margin="10"
+                    KeyUp="productIdField_KeyUp"/>
+                            <Controls:TextEntry x:Name="quantityField" 
+                    Text="1" 
+                    LabelText="Quantity" 
+                    Grid.Column="1" 
+                    MinWidth="140" 
+                    KeyUp="quantityField_KeyUp"/>
+                            <Button Content="Add" x:Name="addButton" Height="30" Margin="15" Width="60" VerticalAlignment="Bottom" Grid.Column="2" Click="addButton_Click"/>
                     </Grid>
                 </StackPanel>
             </Border>
@@ -116,6 +129,38 @@
                                 Click="confirmButton_Click" Cursor="Hand"/>
                     </Grid>
                 </StackPanel>
+                            <Controls:TextEntry x:Name="receivedField" 
+                    LabelText="Received" 
+                    Grid.Column="0" 
+                    MinWidth="140" 
+                    KeyUp="receivedField_KeyUp"/>
+                            <Controls:TextEntry x:Name="returnField" LabelText="Return" MinWidth="140" IsReadOnly="True" Grid.Column="1"/>
+                        <Button Content="Confirm Order" x:Name="confirmButton" Height="30" Margin="15" VerticalAlignment="Bottom" Grid.Column="2" Click="confirmButton_Click"/>
+                    </Grid>
+                </Border>
+            </Grid>
+            <DataGrid x:Name="ProductDataGrid" Height="300" Margin="20 20 20 0" Grid.Row="2" RowEditEnding="ProductDataGrid_RowEditEnding">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn x:Name="SelectColumn">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="RemoveButton" Margin="0 0 2px 0" Width="70px" FontSize="14" Click="RemoveButton_Click">Remove</Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            <Border Grid.Row="1" Background="#33000000" Margin="10 -10 10 10">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
+                    <TextBlock Text="Customer Name:" FontSize="16" VerticalAlignment="Center" Foreground="White" Margin="0 0 10 0"/>
+                        <TextBox x:Name="customerNameField" 
+         Width="250" Height="30" 
+         FontSize="14" 
+         KeyUp="customerNameField_KeyUp" 
+         MaxLength="50"/>
+                    </StackPanel>
             </Border>
         </Grid>
 
