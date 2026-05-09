@@ -9,7 +9,7 @@ namespace StationeryStoreManagementSystem
 {
     class Configuration
     {
-        String ConnectionStr = @"Data Source=Localhost;Initial Catalog=G2DB;Integrated Security=True;Encrypt=False";
+        String ConnectionStr = @"Data Source=Localhost;Initial Catalog=newdb.bacpac;Integrated Security=True;Encrypt=False";
         SqlConnection con;
         private static Configuration _instance;
         public static Configuration getInstance()
