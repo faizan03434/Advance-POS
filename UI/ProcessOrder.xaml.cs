@@ -271,6 +271,7 @@ namespace StationeryStoreManagementSystem.UI
                 builder.AppendLine();
             }
             builder.AppendLine();
+
             builder.AppendLine();
             builder.AppendLine($"Grand Total: {totalLabel.TextData} Rs");
             builder.AppendLine($"Received: {receivedField.Text} Rs");
