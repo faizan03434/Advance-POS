@@ -5,79 +5,93 @@ using System.Collections.Generic;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using WPFMediaKit.DirectShow.Controls;
 
 namespace StationeryStoreManagementSystem.UI
 {
-    /// <summary>
-    /// Interaction logic for Settings.xaml
-    /// </summary>
     public partial class Settings : UserControl
     {
-
         [DllImport("DwmApi")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, int[] attrValue, int attrSize);
+
+        private bool _loading = true;
+
         public Settings()
         {
             InitializeComponent();
+            _loading = true;
+
             ThemeCheckbox.IsChecked = GlobalSettings.CurrentTheme == GlobalSettings.Theme.Light;
-            DisplayIdsCheckbox.IsChecked = GlobalSettings.DisplayIds == true;
+            DisplayIdsCheckbox.IsChecked = GlobalSettings.DisplayIds;
+
             cameraField.ItemSource = MultimediaUtil.VideoInputNames.Cast<string>();
             printerField.ItemSource = PrinterSettings.InstalledPrinters.Cast<string>();
-            cameraField.SelectedItem = ((IEnumerable<string>)cameraField.ItemSource).Where(x => x == GlobalSettings.CameraName).FirstOrDefault();
-            printerField.SelectedItem = ((IEnumerable<string>)printerField.ItemSource).Where(x => x == GlobalSettings.PrinterName).FirstOrDefault();
+            cameraField.SelectedItem = ((IEnumerable<string>)cameraField.ItemSource).FirstOrDefault(x => x == GlobalSettings.CameraName);
+            printerField.SelectedItem = ((IEnumerable<string>)printerField.ItemSource).FirstOrDefault(x => x == GlobalSettings.PrinterName);
+
+            rbIpCam.IsChecked = GlobalSettings.UseIpWebcam;
+            rbPhysicalCam.IsChecked = !GlobalSettings.UseIpWebcam;
+            ipWebcamField.Text = GlobalSettings.IpWebcamUrl ?? "";
+            adminEmailField.Text = GlobalSettings.AdminEmail ?? "";
+            expiryDaysField.Text = GlobalSettings.ExpiryAlertDays.ToString();
+
+            _loading = false;
         }
 
         private void ThemeCheckbox_Checked(object sender, RoutedEventArgs e)
         {
             GlobalSettings.CurrentTheme = GlobalSettings.Theme.Light;
-            var handle = new WindowInteropHelper(Utils.CurrentMainWindow).Handle;
-                DwmSetWindowAttribute(handle, 20, new[] { 0 }, 4);
+            try { var h = new WindowInteropHelper(Utils.CurrentMainWindow).Handle; DwmSetWindowAttribute(h, 20, new[] { 0 }, 4); } catch { }
         }
 
         private void ThemeCheckbox_Unchecked(object sender, RoutedEventArgs e)
         {
             GlobalSettings.CurrentTheme = GlobalSettings.Theme.Dark;
-            var handle = new WindowInteropHelper(Utils.CurrentMainWindow).Handle;
-            DwmSetWindowAttribute(handle, 20, new[] { 1 }, 4);
+            try { var h = new WindowInteropHelper(Utils.CurrentMainWindow).Handle; DwmSetWindowAttribute(h, 20, new[] { 1 }, 4); } catch { }
         }
 
-        private void DisplayIdsCheckbox_Checked(object sender, RoutedEventArgs e)
-        {
-            GlobalSettings.DisplayIds = true;
-        }
-
-        private void DisplayIdsCheckbox_Unchecked(object sender, RoutedEventArgs e)
-        {
-            GlobalSettings.DisplayIds = false;
-        }
+        private void DisplayIdsCheckbox_Checked(object sender, RoutedEventArgs e) => GlobalSettings.DisplayIds = true;
+        private void DisplayIdsCheckbox_Unchecked(object sender, RoutedEventArgs e) => GlobalSettings.DisplayIds = false;
 
         private void cameraField_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (((ComboBoxEntry)sender).ComboBox1.SelectedValue != null)
-            {
+            if (!_loading && ((ComboBoxEntry)sender).ComboBox1.SelectedValue != null)
                 GlobalSettings.CameraName = (string?)((ComboBoxEntry)sender).ComboBox1.SelectedValue;
-            }
         }
 
         private void printerField_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (((ComboBoxEntry)sender).ComboBox1.SelectedValue != null)
-            {
+            if (!_loading && ((ComboBoxEntry)sender).ComboBox1.SelectedValue != null)
                 GlobalSettings.PrinterName = (string?)((ComboBoxEntry)sender).ComboBox1.SelectedValue;
-            }
+        }
+
+        private void rbPhysicalCam_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.UseIpWebcam = false;
+        }
+
+        private void rbIpCam_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.UseIpWebcam = true;
+        }
+
+        private void ipWebcamField_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.IpWebcamUrl = ipWebcamField.Text.Trim();
+        }
+
+        private void adminEmailField_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.AdminEmail = adminEmailField.Text.Trim();
+        }
+
+        private void expiryDaysField_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_loading && int.TryParse(expiryDaysField.Text, out int days) && days > 0)
+                GlobalSettings.ExpiryAlertDays = days;
         }
     }
 }

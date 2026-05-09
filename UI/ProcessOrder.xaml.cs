@@ -13,6 +13,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -53,6 +54,42 @@ namespace StationeryStoreManagementSystem.UI
             DataContext = order;
         }
 
+        // 1. Enter on Product ID -> Focus Quantity
+        private void productIdField_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                quantityField.Focus();
+            }
+        }
+
+        // 2. Enter on Quantity -> Add Product -> Focus Customer Name
+        private void quantityField_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                addButton_Click(sender, e); // Adds product to the list
+                customerNameField.Focus();
+            }
+        }
+
+        // 3. Enter on Customer Name -> Focus Received Field
+        private void customerNameField_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                receivedField.Focus();
+            }
+        }
+
+        // 4. Enter on Received -> Process/Confirm Order
+        private void receivedField_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                confirmButton_Click(sender, e); // Saves and prints the order
+            }
+        }
         private void CameraTimer_Tick(object? sender, EventArgs e)
         {
             if (cooldown > 0)
@@ -93,9 +130,17 @@ namespace StationeryStoreManagementSystem.UI
 
         private void addButton_Click(object sender, RoutedEventArgs e)
         {
-            if (productIdField.Text.IsNullOrEmpty() || quantityField.Text.IsNullOrEmpty())
-                return;
-            order.AddProduct(productIdField.Text, int.Parse(quantityField.Text));
+            //// SearchBar text is accessed via its SearchTextBox or a Text property if you added one
+            //string pid = productIdField.SearchTextBox.Text;
+            //if (string.IsNullOrEmpty(pid) || string.IsNullOrEmpty(quantityField.Text))
+            //    return;
+
+            //order.AddProduct(pid, int.Parse(quantityField.Text));
+
+            //// Reset fields for next manual entry
+            //productIdField.SearchTextBox.Text = string.Empty;
+            //quantityField.Text = "1";
+
             refreshData();
         }
 

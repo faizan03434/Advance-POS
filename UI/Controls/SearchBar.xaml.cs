@@ -52,7 +52,10 @@ namespace StationeryStoreManagementSystem.UI.Controls
         {
             InitializeComponent();
         }
-
+        public new void Focus()
+        {
+            SearchTextBox.Focus();
+        }
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             SearchRequested(this,e);
@@ -60,10 +63,10 @@ namespace StationeryStoreManagementSystem.UI.Controls
 
         private void SearchTextBox_KeyUp(object sender, KeyEventArgs e)
         {
-            
             if (e.Key == Key.Enter)
             {
-                SearchRequested(this,e);
+                // Use ?. to ensure it doesn't crash if the event isn't subscribed to
+                SearchRequested?.Invoke(this, e);
             }
         }
     }
