@@ -298,5 +298,26 @@ namespace StationeryStoreManagementSystem.DL
         {
             DataHandler.DeleteDataSP("stpDeleteProduct", ("Id", id));
         }
+
+        // Add these inside static class ProductDL in Advance-POS/DL/ProductDL.cs
+public static DataTable GetLowStockProducts()
+{
+    // Logic to fetch products where Stock < ReorderThreshold
+    return DataHandler.FillDataTable(@"SELECT * FROM GetProducts_View WHERE Stock <= ReorderThreshold");
+}
+
+public static DataTable GetExpiringProducts(int days)
+{
+    // Logic to fetch products near expiry using the parameter days
+    return DataHandler.FillDataTable($"SELECT * FROM GetExpiringProducts_View WHERE ExpiryDate <= DATEADD(day, {days}, GETDATE())");
+}
+
+public static DataTable GetTodayKpis()
+{
+    // Logic to fetch Key Performance Indicators for the current day
+    return DataHandler.FillDataTable(@"SELECT * FROM GetTodayKpis_View");
+}
     }
+
+    
 }
