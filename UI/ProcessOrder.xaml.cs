@@ -279,7 +279,6 @@ namespace StationeryStoreManagementSystem.UI
             builder.AppendLine();
             builder.AppendLine();
             builder.AppendLine("Thank you for Shopping here!".PadRight(10));
-
             builder.AppendLine("=========================================================");
             graphics.DrawString("Stationary Shop".PadLeft(25), new Font("Courier New", 18), brush, new PointF(startX, startY + Offset + 10));
             graphics.DrawString(builder.ToString(), font, brush, new PointF(startX, startY + Offset));
