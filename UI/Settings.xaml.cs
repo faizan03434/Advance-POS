@@ -1,4 +1,4 @@
-﻿using StationeryStoreManagementSystem.DL;
+using StationeryStoreManagementSystem.DL;
 using StationeryStoreManagementSystem.UI.Controls;
 using System;
 using System.Collections.Generic;

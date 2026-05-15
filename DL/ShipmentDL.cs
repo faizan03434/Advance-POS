@@ -27,7 +27,7 @@ namespace StationeryStoreManagementSystem.DL
                     SupplierId = reader.GetInt32(1);
                 ids.Add((reader.GetInt32(0),reader.GetInt32(2)));
             }
-            List<Product> products = ProductDL.GetProducts(ids.Select(x=>x.Item1).ToList());
+            List<Product> products = ProductDL.GetProducts(ids.Select(x => x.Item1).ToList());
             Supplier supplier = SupplierDL.GetSupplier(SupplierId);
             for(int i=0;i<ids.Count;i++)
             {

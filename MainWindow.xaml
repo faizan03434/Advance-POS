@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="Halwai Bakery " Height="650" Width="1050">
+        Title="Stationery Store Management System" Height="650" Width="1050">
 
     <Window.Resources>
         <SolidColorBrush x:Key="SidebarBlue" Color="#001F3F"/>

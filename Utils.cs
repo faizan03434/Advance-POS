@@ -96,7 +96,7 @@ namespace StationeryStoreManagementSystem
             CloseReader();
             var conn = Configuration.getInstance().getConnection();
             SqlCommand command = new SqlCommand(query, conn);
-            reader = command.ExecuteReader();
+                reader = command.ExecuteReader();
             return reader;
         }
         public static List<object> ReaderToList(SqlDataReader reader)

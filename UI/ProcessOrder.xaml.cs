@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient.Server;
 using Microsoft.IdentityModel.Tokens;
 using StationeryStoreManagementSystem.BL;
 using StationeryStoreManagementSystem.DL;
+using StationeryStoreManagementSystem.Services;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,10 +10,10 @@ using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -26,7 +27,9 @@ namespace StationeryStoreManagementSystem.UI
     public partial class ProcessOrder : UserControl
     {
         DispatcherTimer cameraTimer = new DispatcherTimer();
+        DispatcherTimer ipWebcamTimer = new DispatcherTimer();
         BarcodeReader codeReader = new BarcodeReader();
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
         Order order;
         int invoiceNumber = -1;
         int cooldown = 0;
@@ -35,172 +38,239 @@ namespace StationeryStoreManagementSystem.UI
         {
             InitializeComponent();
 
-            // Camera Logic (Original as it is)
-            if (!GlobalSettings.CameraName.IsNullOrEmpty())
-            {
-                vce.VideoCaptureSource = GlobalSettings.CameraName;
-                cameraTimer.IsEnabled = true;
-                cameraTimer.Interval = TimeSpan.FromMilliseconds(500);
-                cameraTimer.Tick += CameraTimer_Tick;
-            }
-
             order = new Order();
-
-            // FIXED: Maine wo loop hata diya jo DataGrid columns dobara generate kar raha tha.
-            // Ab aapki XAML wali 8 columns hi nazar ayengi aur headers bhi show honge.
             ProductDataGrid.AutoGenerateColumns = false;
             ProductDataGrid.ItemsSource = order.Products;
             ProductDataGrid.CanUserAddRows = false;
-
             DataContext = order;
+
+            // Physical USB/built-in camera (used in shop with real scanner machine)
+            if (!GlobalSettings.UseIpWebcam && !GlobalSettings.CameraName.IsNullOrEmpty())
+            {
+                vce.VideoCaptureSource = GlobalSettings.CameraName;
+                cameraTimer.IsEnabled = true;
+                cameraTimer.Interval = TimeSpan.FromMilliseconds(300);
+                cameraTimer.Tick += CameraTimer_Tick;
+                cameraStatusText.Text = "Camera: " + GlobalSettings.CameraName;
+            }
+            // IP Webcam mode (mobile phone as barcode reader for testing)
+            else if (GlobalSettings.UseIpWebcam && !GlobalSettings.IpWebcamUrl.IsNullOrEmpty())
+            {
+                vce.Visibility = Visibility.Collapsed;
+                ipWebcamImage.Visibility = Visibility.Visible;
+                ipWebcamTimer.Interval = TimeSpan.FromMilliseconds(400);
+                ipWebcamTimer.Tick += IpWebcamTimer_Tick;
+                ipWebcamTimer.Start();
+                cameraStatusText.Text = "IP Cam: " + GlobalSettings.IpWebcamUrl;
+            }
+            else
+            {
+                cameraStatusText.Text = "No camera configured";
+            }
+
+            // Set focus to product ID field
+            Loaded += (s, e) => productIdField.Focus();
         }
 
-        // 1. Enter on Product ID -> Focus Quantity
-        private void productIdField_KeyUp(object sender, KeyEventArgs e)
+        // ===== KEYBOARD SHORTCUTS =====
+        protected override void OnKeyDown(KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            base.OnKeyDown(e);
+            if (e.Key == Key.Delete && ProductDataGrid.SelectedIndex != -1)
             {
-                quantityField.Focus();
+                order.RemoveProduct(ProductDataGrid.SelectedIndex);
+                RefreshData();
+                e.Handled = true;
+            }
+            if (e.Key == Key.Enter && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                confirmButton_Click(this, new RoutedEventArgs());
+                e.Handled = true;
             }
         }
 
-        // 2. Enter on Quantity -> Add Product -> Focus Customer Name
+        // Tab order: Product ID -> Qty -> Add -> Customer -> Received -> Confirm
+        private void productIdField_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) quantityField.Focus();
+        }
+
         private void quantityField_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                addButton_Click(sender, e); // Adds product to the list
+                AddProductFromFields();
                 customerNameField.Focus();
             }
         }
 
-        // 3. Enter on Customer Name -> Focus Received Field
         private void customerNameField_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
-            {
-                receivedField.Focus();
-            }
+            if (e.Key == Key.Enter) receivedField.Focus();
         }
 
-        // 4. Enter on Received -> Process/Confirm Order
         private void receivedField_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
-            {
-                confirmButton_Click(sender, e); // Saves and prints the order
-            }
+            if (e.Key == Key.Enter) confirmButton_Click(sender, e);
         }
+
+        // ===== CAMERA TICK (built-in/USB cam - for shop deployment) =====
         private void CameraTimer_Tick(object? sender, EventArgs e)
         {
-            if (cooldown > 0)
+            if (cooldown > 0) { cooldown--; return; }
+            try
             {
-                cooldown--;
-                return;
-            }
-            RenderTargetBitmap bmp = new RenderTargetBitmap((int)vce.ActualWidth, (int)vce.ActualHeight, 96, 96, PixelFormats.Default);
-            vce.Measure(vce.RenderSize);
-            vce.Arrange(new Rect(vce.RenderSize));
-            bmp.Render(vce);
-            BitmapEncoder encoder = new JpegBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(bmp));
-            using (MemoryStream ms = new MemoryStream())
-            {
+                RenderTargetBitmap bmp = new RenderTargetBitmap((int)vce.ActualWidth, (int)vce.ActualHeight, 96, 96, PixelFormats.Default);
+                vce.Measure(vce.RenderSize);
+                vce.Arrange(new Rect(vce.RenderSize));
+                bmp.Render(vce);
+                BitmapEncoder encoder = new JpegBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bmp));
+                using MemoryStream ms = new MemoryStream();
                 encoder.Save(ms);
                 Bitmap btiMap = new Bitmap(ms);
                 var result = codeReader.Decode(btiMap);
                 if (result != null)
                 {
-                    order.AddProduct(result.ToString(), 1);
-                    cooldown = 60;
-                    refreshData();
+                    AddProductByBarcode(result.ToString());
+                    cooldown = 40;
                 }
             }
+            catch { }
+        }
+
+        // ===== IP WEBCAM TICK (mobile phone for testing) =====
+        private async void IpWebcamTimer_Tick(object? sender, EventArgs e)
+        {
+            if (cooldown > 0) { cooldown--; return; }
+            try
+            {
+                string url = GlobalSettings.IpWebcamUrl!.TrimEnd('/') + "/shot.jpg";
+                var bytes = await _httpClient.GetByteArrayAsync(url);
+
+                // Show frame in UI
+                using var ms = new MemoryStream(bytes);
+                var bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapImage.StreamSource = ms;
+                bitmapImage.EndInit();
+                ipWebcamImage.Source = bitmapImage;
+
+                // Decode barcode
+                using var bmp = new Bitmap(new MemoryStream(bytes));
+                var result = codeReader.Decode(bmp);
+                if (result != null)
+                {
+                    AddProductByBarcode(result.ToString());
+                    cooldown = 50;
+                }
+            }
+            catch { }
+        }
+
+        private void AddProductByBarcode(string code)
+        {
+            order.AddProduct(code.Trim(), 1);
+            RefreshData();
+            // Flash product ID field to show scan
+            Dispatcher.Invoke(() => {
+                productIdField.Text = code.Trim();
+                productIdField.SelectAll();
+            });
+        }
+
+        // ===== MANUAL ENTRY (FIXED - was commented out) =====
+        private void addButton_Click(object sender, RoutedEventArgs e)
+        {
+            AddProductFromFields();
+        }
+
+        private void AddProductFromFields()
+        {
+            string pid = productIdField.Text?.Trim() ?? "";
+            if (string.IsNullOrEmpty(pid)) return;
+
+            int qty = 1;
+            if (!string.IsNullOrEmpty(quantityField.Text))
+                int.TryParse(quantityField.Text, out qty);
+            if (qty <= 0) qty = 1;
+
+            order.AddProduct(pid, qty);
+            productIdField.Text = string.Empty;
+            quantityField.Text = "1";
+            productIdField.Focus();
+            RefreshData();
         }
 
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
             int selectedIndex = ProductDataGrid.SelectedIndex;
-            // Safety check added
             if (selectedIndex != -1)
             {
                 order.RemoveProduct(selectedIndex);
-                refreshData();
+                RefreshData();
             }
-        }
-
-        private void addButton_Click(object sender, RoutedEventArgs e)
-        {
-            //// SearchBar text is accessed via its SearchTextBox or a Text property if you added one
-            //string pid = productIdField.SearchTextBox.Text;
-            //if (string.IsNullOrEmpty(pid) || string.IsNullOrEmpty(quantityField.Text))
-            //    return;
-
-            //order.AddProduct(pid, int.Parse(quantityField.Text));
-
-            //// Reset fields for next manual entry
-            //productIdField.SearchTextBox.Text = string.Empty;
-            //quantityField.Text = "1";
-
-            refreshData();
         }
 
         private void ProductDataGrid_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
         {
-            refreshData();
+            RefreshData();
         }
 
-        private void refreshData()
+        private void RefreshData()
         {
             ProductDataGrid.ItemsSource = null;
             ProductDataGrid.ItemsSource = order.Products;
-
-            // Re-using your exact property names
-            totalLabel.TextData = order.GrandTotal.ToString();
-            savedLabel.TextData = order.SavedTotal.ToString();
+            totalLabel.TextData = order.GrandTotal.ToString("F2");
+            savedLabel.TextData = order.SavedTotal.ToString("F2");
         }
 
         private void confirmButton_Click(object sender, RoutedEventArgs e)
         {
-            if (receivedField.Text.IsNullOrEmpty())
-                return;
+            if (order.Products.Count == 0) { ShowMsg("No products in order."); return; }
+            if (receivedField.Text.IsNullOrEmpty()) { ShowMsg("Enter cash received amount."); return; }
 
-            // Logic original: Payment validation
-            if (double.Parse(receivedField.Text) < double.Parse(totalLabel.TextData))
-            {
-                MessageBox.Show("Insufficient payment amount.", "Payment Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (!double.TryParse(receivedField.Text, out double received))
+            { ShowMsg("Invalid cash amount."); return; }
 
-            returnField.Text = (double.Parse(receivedField.Text) - double.Parse(totalLabel.TextData)).ToString();
+            if (received < order.GrandTotal)
+            { ShowMsg($"Insufficient payment. Total is Rs. {order.GrandTotal:F2}"); return; }
+
+            returnField.Text = (received - order.GrandTotal).ToString("F2");
             order.CustomerName = customerNameField.Text.IsNullOrEmpty() ? null : customerNameField.Text.Trim();
 
-            if (SaveOrder(ref invoiceNumber) == true && invoiceNumber != -1)
+            if (SaveOrder(ref invoiceNumber) && invoiceNumber != -1)
             {
-                var document = new PrintDocument();
-                document.DefaultPageSettings.PaperSize = new PaperSize("Customer Size", 50, 100);
-                if (!GlobalSettings.PrinterName.IsNullOrEmpty())
-                    document.DefaultPageSettings.PrinterSettings.PrinterName = GlobalSettings.PrinterName;
-                document.PrintPage += new PrintPageEventHandler(BillContent);
-                document.Print();
+                PrintBill();
+                // Trigger stock alert check after sale
+                _ = AlertService.CheckAfterSaleAsync();
                 clearOrder();
             }
         }
 
+        private void ShowMsg(string msg) =>
+            System.Windows.MessageBox.Show(msg, "POS", MessageBoxButton.OK, MessageBoxImage.Information);
+
         public void clearOrder()
         {
+            cameraTimer.Stop();
+            ipWebcamTimer.Stop();
             order = new Order();
             invoiceNumber = -1;
             DataContext = order;
             customerNameField.Text = string.Empty;
-            refreshData();
+            receivedField.Text = string.Empty;
+            returnField.Text = string.Empty;
+            RefreshData();
+            cameraTimer.Start();
+            if (GlobalSettings.UseIpWebcam) ipWebcamTimer.Start();
+            productIdField.Focus();
         }
 
         public bool SaveOrder(ref int invoiceNumber)
         {
-            if (receivedField.Text.IsNullOrEmpty())
-                return false;
-
+            if (receivedField.Text.IsNullOrEmpty()) return false;
             var objs = new List<(string, string, SqlDbType, object)>();
             SqlMetaData[] sqlMetas = new SqlMetaData[]
             {
@@ -211,7 +281,6 @@ namespace StationeryStoreManagementSystem.UI
                 new SqlMetaData("TaxAmount",SqlDbType.Money),
                 new SqlMetaData("Quantity",SqlDbType.Int),
             };
-
             var products = order.Products.Select(x =>
             {
                 SqlDataRecord record = new SqlDataRecord(sqlMetas);
@@ -223,66 +292,51 @@ namespace StationeryStoreManagementSystem.UI
                 record.SetInt32(5, x.Quantity);
                 return record;
             });
-
             objs.Add(("OrderProducts", "udtt_OrderProducts", SqlDbType.Structured, products));
             objs.Add(("EmployeeId", null, SqlDbType.Int, Utils.CurrentEmployee.Id));
-            objs.Add(("CustomerName", null, SqlDbType.NVarChar, order.CustomerName));
-
+            objs.Add(("CustomerName", null, SqlDbType.NVarChar, (object?)order.CustomerName ?? DBNull.Value));
             invoiceNumber = (int)DataHandler.BulkDataExecuteSP("stpInsertOrder", objs);
             return true;
         }
 
+        private void PrintBill()
+        {
+            var document = new PrintDocument();
+            document.DefaultPageSettings.PaperSize = new PaperSize("Customer Size", 300, 600);
+            if (!GlobalSettings.PrinterName.IsNullOrEmpty())
+                document.DefaultPageSettings.PrinterSettings.PrinterName = GlobalSettings.PrinterName;
+            document.PrintPage += BillContent;
+            document.Print();
+        }
+
         public void BillContent(object sender, PrintPageEventArgs e)
         {
-            Graphics graphics = e.Graphics;
+            Graphics g = e.Graphics;
             Font font = new Font("Courier New", 10);
+            Font boldFont = new Font("Courier New", 12, System.Drawing.FontStyle.Bold);
             System.Drawing.Brush brush = new SolidBrush(System.Drawing.Color.Black);
+            int x = 5, y = 10;
 
-            int startX = 0;
-            int startY = 0;
-            int Offset = 10;
-
-            StringBuilder builder = new StringBuilder();
-            builder.AppendLine("=========================================================");
-            builder.AppendLine();
-            builder.AppendLine();
-            builder.AppendLine();
-            builder.AppendLine($"Invoice Number: {invoiceNumber}");
+            g.DrawString("=== STATIONARY SHOP ===", boldFont, brush, x, y); y += 20;
+            g.DrawString($"Invoice: #{invoiceNumber}", font, brush, x, y); y += 15;
             if (!string.IsNullOrEmpty(order.CustomerName))
-                builder.AppendLine($"Customer Name: {order.CustomerName}");
-            builder.AppendLine($"Processed By: {Utils.CurrentEmployee.Name}");
-            builder.AppendLine($"Dated: {DateTime.Now}");
-            builder.AppendLine();
-            builder.AppendLine();
-            builder.AppendLine();
-            builder.Append("Code".PadRight(12));
-            builder.Append("Product".PadRight(12 + 10));
-            builder.Append("Q.ty".PadRight(6));
-            builder.Append("GST".PadRight(6));
-            builder.Append("Total".PadRight(12));
-            builder.AppendLine();
+            { g.DrawString($"Customer: {order.CustomerName}", font, brush, x, y); y += 15; }
+            g.DrawString($"Cashier: {Utils.CurrentEmployee.Name}", font, brush, x, y); y += 15;
+            g.DrawString($"Date: {DateTime.Now:dd-MMM-yyyy HH:mm}", font, brush, x, y); y += 15;
+            g.DrawString(new string('-', 38), font, brush, x, y); y += 12;
 
             foreach (var item in order.Products)
             {
-                builder.Append(item.Code.PadRight(12));
-                builder.Append(item.Product.Name.PadRight(12 + 10));
-                builder.Append(item.Quantity.ToString().PadRight(6));
-                builder.Append(item.Product.Category.GST.ToString().PadRight(6));
-                builder.Append($"{item.TotalPrice} Rs".PadRight(12));
-                builder.AppendLine();
+                string line = $"{item.Product.Name.PadRight(20).Substring(0, 20)} x{item.Quantity}";
+                g.DrawString(line, font, brush, x, y); y += 13;
+                g.DrawString($"  Rs.{item.TotalPrice:F2}", font, brush, x, y); y += 13;
             }
-            builder.AppendLine();
-            builder.AppendLine();
-            builder.AppendLine($"Grand Total: {totalLabel.TextData} Rs");
-            builder.AppendLine($"Received: {receivedField.Text} Rs");
-            builder.AppendLine($"Total Payable: {totalLabel.TextData} Rs");
-            builder.AppendLine();
-            builder.AppendLine();
-            builder.AppendLine("Thank you for Shopping here!".PadRight(10));
-
-            builder.AppendLine("=========================================================");
-            graphics.DrawString("Stationary Shop".PadLeft(25), new Font("Courier New", 18), brush, new PointF(startX, startY + Offset + 10));
-            graphics.DrawString(builder.ToString(), font, brush, new PointF(startX, startY + Offset));
+            g.DrawString(new string('-', 38), font, brush, x, y); y += 12;
+            g.DrawString($"Total:    Rs.{order.GrandTotal:F2}", boldFont, brush, x, y); y += 18;
+            g.DrawString($"Received: Rs.{receivedField.Text}", font, brush, x, y); y += 15;
+            g.DrawString($"Change:   Rs.{returnField.Text}", font, brush, x, y); y += 15;
+            g.DrawString(new string('-', 38), font, brush, x, y); y += 12;
+            g.DrawString("Thank you for shopping!", font, brush, x, y);
         }
     }
 }

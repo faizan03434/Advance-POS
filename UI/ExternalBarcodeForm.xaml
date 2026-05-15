@@ -1,0 +1,176 @@
+﻿<local:AbstractEntryForm x:Class="StationeryStoreManagementSystem.UI.ExternalBarcodeForm"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
+             xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
+             xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             mc:Ignorable="d"
+             d:DesignHeight="820" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60px"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Components:TitleBlock x:Name="titleBlock" Title="Register Product with Existing Barcode"
+                               Grid.ColumnSpan="2" VerticalAlignment="Center"/>
+
+        <ScrollViewer x:Name="scrollViewer" Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
+            <StackPanel Margin="40,20,40,20">
+
+                <!-- ── SECTION 1: Barcode Capture ── -->
+                <Border Background="#EFF6FF" BorderBrush="#3B82F6" BorderThickness="1"
+                        CornerRadius="6" Padding="16" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Step 1 — Capture the Physical Barcode"
+                                   FontSize="14" FontWeight="SemiBold" Foreground="#1E40AF" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Scan the barcode on the product packaging OR type it manually below:"
+                                   FontSize="12" Foreground="#374151" Margin="0,0,0,8"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Controls:TextEntry x:Name="ExternalBarcodeField"
+                                                Grid.Column="0"
+                                                LabelText="Barcode Value (scan or type)"
+                                                IsRequired="True"
+                                                MaxLength="100"
+                                                Text="{Binding ExternalBarcode, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button x:Name="ScanBarcodeBtn"
+                                    Grid.Column="1"
+                                    Content="📷 Scan"
+                                    Width="90" Height="36"
+                                    Margin="8,14,0,0"
+                                    Click="ScanBarcodeBtn_Click"
+                                    ToolTip="Open camera to scan the physical barcode"/>
+                            <Button x:Name="LookupBarcodeBtn"
+                                    Grid.Column="2"
+                                    Content="🔍 Lookup"
+                                    Width="90" Height="36"
+                                    Margin="8,14,0,0"
+                                    Click="LookupBarcodeBtn_Click"
+                                    ToolTip="Try to read product info embedded in this barcode"/>
+                        </Grid>
+
+                        <!-- Status label shown after lookup -->
+                        <TextBlock x:Name="LookupStatusText"
+                                   FontSize="12" Margin="10,4,0,0"
+                                   Foreground="#6B7280"
+                                   Visibility="Collapsed"/>
+
+                        <!-- Barcode preview image -->
+                        <Image x:Name="BarcodePreviewImage"
+                               Height="60" Margin="10,8,10,0"
+                               HorizontalAlignment="Left"
+                               Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── SECTION 2: Product Details ── -->
+                <Border Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="1"
+                        CornerRadius="6" Padding="16" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Step 2 — Fill Product Details"
+                                   FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,10"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <Controls:TextEntry x:Name="NameField"
+                                                Grid.Row="0" Grid.Column="0"
+                                                IsRequired="True"
+                                                LabelText="Product Name"
+                                                MaxLength="100"
+                                                Text="{Binding Name}"/>
+                            <Controls:TextEntry x:Name="CodeField"
+                                                Grid.Row="0" Grid.Column="1"
+                                                IsRequired="True"
+                                                LabelText="Internal Code (5 chars)"
+                                                MaxLength="5"
+                                                Text="{Binding Code}"/>
+                            <Controls:ComboBoxEntry x:Name="CompanyField"
+                                                    Grid.Row="1" Grid.Column="0"
+                                                    SelectedItem="{Binding Company}"
+                                                    LabelText="Company"/>
+                            <Controls:ComboBoxEntry x:Name="CategoryField"
+                                                    Grid.Row="1" Grid.Column="1"
+                                                    SelectedItem="{Binding Category}"
+                                                    LabelText="Category"/>
+                            <Controls:TextEntry Grid.Row="2" Grid.Column="0"
+                                                Text="{Binding ReorderThreshold}"
+                                                PositiveNumbersOnly="True"
+                                                LabelText="Reorder Threshold"
+                                                MaxLength="10"/>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,14,10,0">
+                                <TextBlock Text="Expiry Date (optional)"
+                                           FontSize="12" Foreground="#6B7280" Margin="10,0,0,4"/>
+                                <DatePicker x:Name="ExpiryDatePicker"
+                                            Margin="10,0" Height="36"
+                                            SelectedDateChanged="ExpiryDatePicker_Changed"
+                                            SelectedDate="{Binding ExpiryDate, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── SECTION 3: Supplier ── -->
+                <Border Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="1"
+                        CornerRadius="6" Padding="16" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="Step 3 — Assign Supplier"
+                                   FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,10"/>
+                        <DataGrid x:Name="SuppliersDataGrid" Height="180" Margin="0,0,0,10"
+                                  AutoGenerateColumns="False" CanUserAddRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Width="70" FontSize="13"
+                                                    Click="RemoveSupplierBtn_Click">Remove</Button>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Components:DataViewer x:Name="suppliersDataHandler"
+                                               Margin="0,0,0,0" Height="220"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── ACTION BUTTONS ── -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="ConfirmButton" Grid.Column="0"
+                            Height="50" Width="140"
+                            HorizontalAlignment="Right" Margin="0,0,30,0"
+                            Content="Save Product"
+                            Click="ConfirmButton_Click"/>
+                    <Button Grid.Column="1"
+                            Height="50" Width="100"
+                            HorizontalAlignment="Left" Margin="30,0,0,0"
+                            Content="Cancel"
+                            Click="CancelButton_Click"/>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</local:AbstractEntryForm>

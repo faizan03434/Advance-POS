@@ -1,4 +1,4 @@
-﻿using StationeryStoreManagementSystem.DL;
+using StationeryStoreManagementSystem.DL;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,10 @@ namespace StationeryStoreManagementSystem.BL
         public int Id { get; set; }
         public string Name { get; set; }
         public string Code { get; set; }
+
+        // NEW: Physical barcode already printed on the product packaging
+        public string ExternalBarcode { get; set; }
+
         public Company? Company { get; set; }
         public int? ReorderThreshold { get; set; }
         public Category? Category { get; set; }
@@ -28,24 +32,29 @@ namespace StationeryStoreManagementSystem.BL
         public Product() { }
 
         public Product(string name, string code, Company? company, int? reorderThreshold, Category? category,
-                       DateTime? expiryDate, List<Supplier> suppliers, List<Stock> stocks) : this()
+                       DateTime? expiryDate, List<Supplier> suppliers, List<Stock> stocks,
+                       string externalBarcode = null) : this()
         {
             Name = name; Code = code; Company = company; ReorderThreshold = reorderThreshold;
             Category = category; ExpiryDate = expiryDate; Suppliers = suppliers; Stocks = stocks;
+            ExternalBarcode = externalBarcode;
         }
 
-        // Constructor from DB args list: Id, Name, Code, Company, ReorderThreshold, Category, ExpiryDate, Suppliers, Stocks
+        // Constructor from DB args list: Id, Name, Code, ExternalBarcode, Company, ReorderThreshold, Category, ExpiryDate, Suppliers, Stocks
         public Product(List<object> args)
         {
             Id = (int)args[0];
             Name = (string)args[1];
             Code = ((string)args[2]).Trim();
-            Company = (Company?)args[3];
-            ReorderThreshold = (int?)args[4];
-            Category = (Category?)args[5];
-            ExpiryDate = args.Count > 6 && args[6] != null ? (DateTime?)args[6] : null;
+            // args[3] = ExternalBarcode (new column, nullable)
+            ExternalBarcode = args.Count > 3 && args[3] != null ? (string)args[3] : null;
 
-            int suppIdx = args.Count > 7 && args[7] is List<Supplier> ? 7 : 6;
+            Company = args.Count > 4 && args[4] != null ? (Company?)args[4] : null;
+            ReorderThreshold = args.Count > 5 && args[5] != null ? (int?)args[5] : null;
+            Category = args.Count > 6 && args[6] != null ? (Category?)args[6] : null;
+            ExpiryDate = args.Count > 7 && args[7] != null ? (DateTime?)args[7] : null;
+
+            int suppIdx = args.Count > 8 && args[8] is List<Supplier> ? 8 : 7;
             int stksIdx = suppIdx + 1;
 
             Suppliers = args.Count > suppIdx && args[suppIdx] is List<Supplier> s ? s : new List<Supplier>();
@@ -61,8 +70,18 @@ namespace StationeryStoreManagementSystem.BL
         public void Save(bool isAdd = false)
         {
             ProductDL.Save(this, isAdd);
-            foreach (var supplier in SupplierDL.GetProductSuppliers(this))
-                Utils.GenerateBarcode(Code + supplier.Code);
+
+            // Only generate system barcodes for products WITHOUT an external barcode
+            if (string.IsNullOrWhiteSpace(ExternalBarcode))
+            {
+                foreach (var supplier in SupplierDL.GetProductSuppliers(this))
+                    Utils.GenerateBarcode(Code + supplier.Code);
+            }
+            else
+            {
+                // Save the external barcode image using the raw scanned value
+                Utils.GenerateBarcode(ExternalBarcode);
+            }
         }
     }
 }

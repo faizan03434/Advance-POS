@@ -83,28 +83,59 @@ namespace StationeryStoreManagementSystem.BL
                 productsLookup.Add(product.Code, product);
             }
         }
-        public void AddProduct(string productID,int quantity)
+        public void AddProduct(string productID, int quantity)
         {
+            productID = productID.Trim();
+
+            // ── PATH 1: System-generated barcode (ProductCode 5 + SupplierCode 3 = 8 chars) ──
             if (productID.Length == 8)
             {
                 string productCode = productID.Substring(0, 5);
-                string suppliercode = productID.Substring(5, 3);
+                string supplierCode = productID.Substring(5, 3);
                 if (productsLookup.ContainsKey(productCode))
                 {
                     Product product = productsLookup[productCode];
-                    Stock? stock = product.Stocks.Where(x => x.Supplier.Code == suppliercode).FirstOrDefault();
-                    if (productsLookup[productCode].Suppliers.Exists(x => x.Code == suppliercode))
-                        if (stock != null)
-                        {
-                            OrderProduct? orderProduct = Products.Find(x => x.Code == productID);
-                            if (orderProduct == null)
-                                Products.Add(new OrderProduct(productID, product, stock.Supplier, quantity,stock.RetailPrice,stock.DiscountAmount));
-                            else
-                                orderProduct.Quantity += quantity;
-                        }
+                    Stock? stock = product.Stocks.Where(x => x.Supplier.Code == supplierCode).FirstOrDefault();
+                    if (product.Suppliers.Exists(x => x.Code == supplierCode) && stock != null)
+                    {
+                        OrderProduct? orderProduct = Products.Find(x => x.Code == productID);
+                        if (orderProduct == null)
+                            Products.Add(new OrderProduct(productID, product, stock.Supplier, quantity, stock.RetailPrice, stock.DiscountAmount));
+                        else
+                            orderProduct.Quantity += quantity;
+                    }
+                }
+                return; // handled
+            }
+
+            // ── PATH 2: External barcode (any length that is NOT 8 chars) ──
+            // Check if it matches any product's ExternalBarcode in the in-memory lookup first
+            Product? extProduct = productsLookup.Values
+                .FirstOrDefault(p => !string.IsNullOrEmpty(p.ExternalBarcode)
+                                  && p.ExternalBarcode.Trim() == productID);
+
+            if (extProduct == null)
+            {
+                // Fallback: hit the DB (handles products loaded before this session)
+                extProduct = DL.ProductDL.GetProductByExternalBarcode(productID);
+            }
+
+            if (extProduct != null && extProduct.Stocks != null && extProduct.Stocks.Count > 0)
+            {
+                // Use the first available supplier's stock for checkout
+                Stock stock = extProduct.Stocks[0];
+                if (stock.Supplier != null)
+                {
+                    string orderCode = extProduct.ExternalBarcode; // keep original scanned value as cart key
+                    OrderProduct? orderProduct = Products.Find(x => x.Code == orderCode);
+                    if (orderProduct == null)
+                        Products.Add(new OrderProduct(orderCode, extProduct, stock.Supplier, quantity, stock.RetailPrice, stock.DiscountAmount));
+                    else
+                        orderProduct.Quantity += quantity;
                 }
             }
         }
+
         public void RemoveProduct(string ProductID)
         {
             Products.Remove(Products.Where(x => x.Code == ProductID).First());

@@ -13,21 +13,24 @@
             <RowDefinition Height="60px"/>
             <RowDefinition>
                 <RowDefinition.Style>
-                <Style TargetType="{x:Type RowDefinition}">
-                    <Setter Property="Height" Value="Auto" />
-                    <Style.Triggers>
+                    <Style TargetType="{x:Type RowDefinition}">
+                        <Setter Property="Height" Value="Auto" />
+                        <Style.Triggers>
                             <DataTrigger Binding="{Binding row1Visbility}" Value="True">
-                            <Setter Property="Height" Value="0" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
+                                <Setter Property="Height" Value="0" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
                 </RowDefinition.Style>
             </RowDefinition>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="1" Margin="50 15 50 0" x:Name="stackPanel1">
             <Controls:SearchBar x:Name="searchBar" SearchAttributes="{Binding ElementName=DataGridViewControl,Path=SearchAttributes,Mode=TwoWay}" Visibility="Collapsed" SearchRequested="searchBar_SearchRequested"/>
-            <Button x:Name="Addbutton" Content="{Binding ElementName=DataGridViewControl,Path=AddButtonContent,Mode=TwoWay}" Click="AddButton_Click" Margin="0 20 0 40" Height="30"  HorizontalAlignment="Left" Visibility="Collapsed"/>
+            <!-- buttonBar: horizontal panel — Addbutton lives here so extra buttons sit beside it -->
+            <StackPanel x:Name="buttonBar" Orientation="Horizontal" Margin="0 20 0 40" VerticalAlignment="Center">
+                <Button x:Name="Addbutton" Content="{Binding ElementName=DataGridViewControl,Path=AddButtonContent,Mode=TwoWay}" Click="AddButton_Click" Height="30" HorizontalAlignment="Left" Visibility="Collapsed"/>
+            </StackPanel>
         </StackPanel>
         <DataGrid Grid.Row="3" Margin="20" x:Name="datagrid" AutoGenerateColumns="False" IsReadOnly="True" ItemsSource="{Binding ElementName=DataGridViewControl,Path=ItemSource,Mode=TwoWay}">
             <DataGrid.Columns>

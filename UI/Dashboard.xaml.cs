@@ -1,4 +1,4 @@
-﻿using StationeryStoreManagementSystem.BL;
+using StationeryStoreManagementSystem.BL;
 using StationeryStoreManagementSystem.DL;
 using StationeryStoreManagementSystem.Services;
 using System;
@@ -188,8 +188,7 @@ namespace StationeryStoreManagementSystem.UI
             var pct = new System.Windows.Controls.TextBlock
             {
                 Text = $"{data.Count} cats",
-                FontSize = 11,
-                FontWeight = FontWeights.Bold,
+                FontSize = 11, FontWeight = FontWeights.Bold,
                 Foreground = new SolidColorBrush(Colors.DimGray),
                 HorizontalAlignment = HorizontalAlignment.Center
             };

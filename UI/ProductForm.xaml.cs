@@ -1,4 +1,4 @@
-﻿using StationeryStoreManagementSystem.BL;
+using StationeryStoreManagementSystem.BL;
 using StationeryStoreManagementSystem.DL;
 using System;
 using System.Collections.Generic;
@@ -128,20 +128,20 @@ namespace StationeryStoreManagementSystem.UI
             {
                 suppliers.Add(new Supplier((int)row.ItemArray[0]));
                 var stocksSupplier = stockChanges.Where(x => x.Item1 == (int)row.ItemArray[0]);
-                foreach (var item in stocksSupplier)
+                foreach(var item in stocksSupplier)
                 {
                     filteredChanges.Add(item);
                 }
             }
             product.Suppliers = suppliers;
-            product.Stocks = product.Stocks == null ? null : product.Stocks.Where(x =>
+            product.Stocks = product.Stocks==null? null:product.Stocks.Where(x =>
             {
                 if (x.Supplier == null) return false;
                 return suppliers.Select(y => y.Id)
             .Contains(x.Supplier.Id);
             }).ToList();
             product.Save(!isEdit);
-            ProductDL.SaveStockChanges(product, filteredChanges);
+            ProductDL.SaveStockChanges(product,filteredChanges);
             NavigateCallingForm();
         }
 

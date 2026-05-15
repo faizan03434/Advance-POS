@@ -1,6 +1,7 @@
-﻿using StationeryStoreManagementSystem.BL;
+using StationeryStoreManagementSystem.BL;
 using StationeryStoreManagementSystem.DL;
 using StationeryStoreManagementSystem.UI;
+using StationeryStoreManagementSystem.Services;
 using StationeryStoreManagementSystem.UI.Controls;
 using System;
 using System.Collections.Generic;
@@ -242,8 +243,28 @@ namespace StationeryStoreManagementSystem
         }
 
         // UPDATE 2: Applying XAML Style to Dynamic Buttons
+        // Global keyboard shortcuts
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (Utils.CurrentEmployee == null) return;
+            bool isAdmin = Utils.CurrentEmployee is Admin;
+            switch (e.Key)
+            {
+                case Key.F1: DashboardButton_Click(this, new RoutedEventArgs()); e.Handled = true; break;
+                case Key.F2: ProcessOrderButton_Click(this, new RoutedEventArgs()); e.Handled = true; break;
+                case Key.F3: if (isAdmin) ManageProductButton_Click(this, new RoutedEventArgs()); e.Handled = true; break;
+                case Key.F4: if (isAdmin) ManageSuppliersButton_Click(this, new RoutedEventArgs()); e.Handled = true; break;
+                case Key.F5: if (isAdmin) ManageEmployeesButton_Click(this, new RoutedEventArgs()); e.Handled = true; break;
+                case Key.F6: if (isAdmin) ManageNotificationsButton_Click(this, new RoutedEventArgs()); e.Handled = true; break;
+                case Key.F7: SettingsButton_Click(this, new RoutedEventArgs()); e.Handled = true; break;
+                case Key.Escape: DashboardButton_Click(this, new RoutedEventArgs()); e.Handled = true; break;
+            }
+        }
+
         private void SetButtons(object sender, EventArgs e)
         {
+            AlertService.Start(); // Start AI alert monitoring after login
             sideBar.Visibility = Visibility.Visible;
             sideBar.Children.Clear(); // Clearing children to prevent duplicates on re-login
 

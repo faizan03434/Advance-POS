@@ -1,4 +1,4 @@
-﻿# Advanced POS System — Stationery Store Management
+# Advanced POS System — Stationery Store Management
 ## Version 2.0 Enhanced
 
 A full-featured desktop Point-of-Sale application for stationery shops.  
