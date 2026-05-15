@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="StationeryStoreManagementSystem.UI.Controls.TextEntry"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             mc:Ignorable="d" 
+             x:Name="TextEntryControl"
+             d:DesignWidth="200">
+    <Grid>
+        <StackPanel Margin="20 10">
+            <TextBlock Margin="13 0"
+                    Name="TextBlockLabel"
+                    FontSize="12" 
+                    Text="{Binding ElementName=TextEntryControl,Path=LabelText,Mode=TwoWay}"
+                    HorizontalAlignment="Stretch"
+                    IsHitTestVisible="False"/>
+            <TextBox Name="TextBoxText"
+                 MaxLength="{Binding ElementName=TextEntryControl,Path=MaxLength,Mode=TwoWay}"
+                 Margin="10 5 10 10"
+                 FontSize="14px"
+                 Padding="10 8"
+                 BorderThickness="1"
+                 VerticalContentAlignment="Top"
+                 BorderBrush="Gray"
+                 HorizontalAlignment="Stretch" 
+                 AcceptsReturn="{Binding ElementName=TextEntryControl,Path=AcceptsReturn,Mode=TwoWay}"
+                 TextWrapping="{Binding ElementName=TextEntryControl,Path=TextWrapping,Mode=TwoWay}" 
+                 VerticalScrollBarVisibility="Auto"
+                 MinHeight="{Binding ElementName=TextEntryControl,Path=MinHeight,Mode=TwoWay}"
+                 Height="{Binding ElementName=TextEntryControl,Path=Height,Mode=TwoWay}"
+                 IsReadOnly="{Binding ElementName=TextEntryControl,Path=IsReadOnly,Mode=TwoWay}"
+                 PreviewTextInput="TextBoxText_PreviewTextInput"
+                 DataObject.Pasting="TextBoxText_Pasting"
+                 Text="{Binding ElementName=TextEntryControl,Path=Text,UpdateSourceTrigger=LostFocus,Mode=TwoWay}">
+            <Validation.ErrorTemplate>
+                <ControlTemplate>
+                        <StackPanel>
+                        <AdornedElementPlaceholder/>
+                        <TextBlock Text="{Binding [0].ErrorContent}" Foreground="{DynamicResource RequiredFieldForeground}"/>
+                        </StackPanel>
+                </ControlTemplate>
+            </Validation.ErrorTemplate>
+            </TextBox>
+        </StackPanel>
+    </Grid>
+</UserControl>

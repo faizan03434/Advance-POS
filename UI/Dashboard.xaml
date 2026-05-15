@@ -1,0 +1,208 @@
+<UserControl x:Class="StationeryStoreManagementSystem.UI.Dashboard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             xmlns:chartingToolkit="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=DotNetProjects.DataVisualization.Toolkit"
+             mc:Ignorable="d" d:DesignHeight="1800" d:DesignWidth="1000">
+
+    <Grid>
+        <Grid.Background><SolidColorBrush Color="#F0F4F8"/></Grid.Background>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,0,40">
+
+                <!-- Header -->
+                <Border Padding="25,18" Margin="0,0,0,0">
+                    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#1565C0" Offset="0"/><GradientStop Color="#0D47A1" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Dashboard" Foreground="White" FontSize="22" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="todayDateText" Foreground="#90CAF9" FontSize="12" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button x:Name="NotificationButton" Grid.Column="1" Width="44" Height="44"
+                                Click="NotificationButton_Click" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                            <Grid>
+                                <Image Source="{DynamicResource ResourceKey=bellIcon}" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <Border x:Name="alertBadge" Background="#EF4444" CornerRadius="8" Width="16" Height="16"
+                                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,2,0" Visibility="Collapsed">
+                                    <TextBlock x:Name="alertBadgeCount" Text="0" Foreground="White" FontSize="9" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- KPI Cards Row -->
+                <Grid Margin="20,16,20,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="White" CornerRadius="10" Margin="0,0,8,0" Padding="16,14">
+                        <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Today Revenue" FontSize="11" Foreground="#6B7280"/>
+                            <TextBlock x:Name="kpiRevenue" Text="Rs. 0" FontSize="22" FontWeight="Bold" Foreground="#1565C0" Margin="0,4,0,0"/>
+                            <TextBlock Text="Total sales today" FontSize="10" Foreground="#9CA3AF"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Background="White" CornerRadius="10" Margin="4,0,4,0" Padding="16,14">
+                        <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Today Profit" FontSize="11" Foreground="#6B7280"/>
+                            <TextBlock x:Name="kpiProfit" Text="Rs. 0" FontSize="22" FontWeight="Bold" Foreground="#059669" Margin="0,4,0,0"/>
+                            <TextBlock Text="Net margin today" FontSize="10" Foreground="#9CA3AF"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="White" CornerRadius="10" Margin="4,0,4,0" Padding="16,14">
+                        <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Orders Today" FontSize="11" Foreground="#6B7280"/>
+                            <TextBlock x:Name="kpiOrders" Text="0" FontSize="22" FontWeight="Bold" Foreground="#7C3AED" Margin="0,4,0,0"/>
+                            <TextBlock Text="Transactions processed" FontSize="10" Foreground="#9CA3AF"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="3" Background="White" CornerRadius="10" Margin="8,0,0,0" Padding="16,14">
+                        <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Low Stock Items" FontSize="11" Foreground="#6B7280"/>
+                            <TextBlock x:Name="kpiLowStock" Text="0" FontSize="22" FontWeight="Bold" Foreground="#DC2626" Margin="0,4,0,0"/>
+                            <TextBlock Text="Need restocking" FontSize="10" Foreground="#9CA3AF"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Alerts Panel (Admin only) -->
+                <Border x:Name="alertsPanel" Margin="20,16,20,0" Background="White" CornerRadius="10" Visibility="Collapsed">
+                    <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
+                    <StackPanel>
+                        <Border Background="#FEF3C7" CornerRadius="10,10,0,0" Padding="16,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="⚠ Active Alerts" FontWeight="Bold" FontSize="14" Foreground="#92400E"/>
+                                <Button Grid.Column="1" Content="Refresh" Background="#F59E0B" Foreground="White"
+                                        BorderThickness="0" Padding="10,4" Cursor="Hand" Click="RefreshAlerts_Click" FontSize="12">
+                                    <Button.Style><Style TargetType="Button"><Setter Property="Template"><Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value></Setter></Style></Button.Style>
+                                </Button>
+                            </Grid>
+                        </Border>
+                        <StackPanel x:Name="alertsContainer" Margin="16,8,16,16"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Charts Row: Daily + Pie circles -->
+                <Grid x:Name="daily_row" Margin="20,16,20,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="White" CornerRadius="10" Margin="0,0,8,0" Padding="16">
+                        <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.07" Color="Black"/></Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Daily Sales &amp; Profit (by hour)" FontWeight="Bold" FontSize="14" Foreground="#1E293B" Margin="0,0,0,10"/>
+                            <chartingToolkit:Chart x:Name="DailyChart" Height="280" BorderThickness="0" Background="Transparent">
+                                <chartingToolkit:Chart.Axes>
+                                    <chartingToolkit:LinearAxis Orientation="Y" Title="Rs." ShowGridLines="True"/>
+                                    <chartingToolkit:CategoryAxis Orientation="X" Title="Hour of Day"/>
+                                </chartingToolkit:Chart.Axes>
+                                <chartingToolkit:ColumnSeries x:Name="DailySale" DependentValuePath="Value" IndependentValuePath="Key" Title="Sales" ItemsSource="{Binding}"/>
+                                <chartingToolkit:LineSeries x:Name="DailyProfit" DependentValuePath="Value" IndependentValuePath="Key" Title="Profit" ItemsSource="{Binding}"/>
+                            </chartingToolkit:Chart>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- KPI Circles panel -->
+                    <Border Grid.Column="1" Background="White" CornerRadius="10" Margin="8,0,0,0" Padding="16">
+                        <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.07" Color="Black"/></Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="Category Breakdown" FontWeight="Bold" FontSize="14" Foreground="#1E293B" Margin="0,0,0,10"/>
+                            <Canvas x:Name="categoryDonutCanvas" Height="200" Width="200" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="categoryDonutLabel" Text="Today's Sales" FontSize="11" Foreground="#6B7280"
+                                       HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                            <ItemsControl x:Name="categoryLegend" Margin="0,10,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <Border Width="12" Height="12" CornerRadius="2" Background="{Binding Color}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Label}" FontSize="11" Foreground="#374151" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Weekly chart -->
+                <Border x:Name="weekly_row" Margin="20,16,20,0" Background="White" CornerRadius="10" Padding="16">
+                    <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.07" Color="Black"/></Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Weekly Sales &amp; Profit (this week)" FontWeight="Bold" FontSize="14" Foreground="#1E293B" Margin="0,0,0,10"/>
+                        <chartingToolkit:Chart x:Name="WeeklyChart" Height="280" BorderThickness="0" Background="Transparent">
+                            <chartingToolkit:Chart.Axes>
+                                <chartingToolkit:LinearAxis Orientation="Y" Title="Rs." ShowGridLines="True"/>
+                                <chartingToolkit:CategoryAxis Orientation="X" Title="Day"/>
+                            </chartingToolkit:Chart.Axes>
+                            <chartingToolkit:ColumnSeries x:Name="WeeklySale" DependentValuePath="Value" IndependentValuePath="Key" Title="Sales" ItemsSource="{Binding}"/>
+                            <chartingToolkit:LineSeries x:Name="WeeklyProfit" DependentValuePath="Value" IndependentValuePath="Key" Title="Profit" ItemsSource="{Binding}"/>
+                        </chartingToolkit:Chart>
+                    </StackPanel>
+                </Border>
+
+                <!-- Monthly chart -->
+                <Border Margin="20,16,20,0" Background="White" CornerRadius="10" Padding="16">
+                    <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.07" Color="Black"/></Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Monthly Sales &amp; Profit (by week)" FontWeight="Bold" FontSize="14" Foreground="#1E293B" Margin="0,0,0,10"/>
+                        <chartingToolkit:Chart x:Name="MonthlyChart" Height="280" BorderThickness="0" Background="Transparent">
+                            <chartingToolkit:Chart.Axes>
+                                <chartingToolkit:LinearAxis Orientation="Y" Title="Rs." ShowGridLines="True"/>
+                                <chartingToolkit:CategoryAxis Orientation="X" Title="Week"/>
+                            </chartingToolkit:Chart.Axes>
+                            <chartingToolkit:ColumnSeries x:Name="MonthlySale" DependentValuePath="Value" IndependentValuePath="Key" Title="Sales" ItemsSource="{Binding}"/>
+                            <chartingToolkit:LineSeries x:Name="MonthlyProfit" DependentValuePath="Value" IndependentValuePath="Key" Title="Profit" ItemsSource="{Binding}"/>
+                        </chartingToolkit:Chart>
+                    </StackPanel>
+                </Border>
+
+                <!-- Report section -->
+                <Border x:Name="report_row" Margin="20,16,20,0" Background="White" CornerRadius="10" Padding="16" Visibility="Collapsed">
+                    <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.07" Color="Black"/></Border.Effect>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="180"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Reports" FontWeight="Bold" FontSize="14" Foreground="#1E293B" Margin="0,0,0,8"/>
+                            <Controls:ComboBoxEntry x:Name="Reports_cb" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" x:Name="PreviewButton" Content="Preview Report" Height="42"
+                                Click="PreviewButton_Click" Foreground="White" FontSize="14" FontWeight="Bold"
+                                Margin="12,20,0,0" Cursor="Hand" BorderThickness="0">
+                            <Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#1565C0" Offset="0"/><GradientStop Color="#0D47A1" Offset="1"/></LinearGradientBrush></Button.Background>
+                            <Button.Style><Style TargetType="Button"><Setter Property="Template"><Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value></Setter></Style></Button.Style>
+                        </Button>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

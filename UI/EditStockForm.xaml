@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="StationeryStoreManagementSystem.UI.EditStockForm"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
+             xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
+             xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60px"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Components:TitleBlock Grid.Row="0" x:Name="titleBlock" Title="Edit Stock"/>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel CanVerticallyScroll="True">
+                <Controls:DataLabel FontSize="12" Margin="30 25 30 0" LabelData="Product Name: " x:Name="productName"/>
+                <Controls:DataLabel FontSize="12" Margin="30 5 30 10" LabelData="Supplier Name: " x:Name="supplierName"/>
+                <Controls:TextEntry IsRequired="True" x:Name="quantityChangeField" LabelText="Adjustment in Quantity" Margin="0,0,0,4" Grid.RowSpan="2"/>
+                <Controls:TextEntry LabelText="Reason" AcceptsReturn="True" x:Name="reasonField" MinHeight="250" Margin="0,0,0,52" Grid.RowSpan="3"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="ConfirmButton" Grid.Column="0" Height="50" Width="100" HorizontalAlignment="Right" Margin="0 0 30 0" Content="Confirm" Click="ConfirmButton_Click"/>
+                    <Button Grid.Column="1" Height="50" Width="100" HorizontalAlignment="Left" Margin="30 0 0 0" Content="Cancel" Click="CancelButton_Click"/>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

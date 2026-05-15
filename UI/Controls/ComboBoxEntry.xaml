@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="StationeryStoreManagementSystem.UI.Controls.ComboBoxEntry"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
+             x:Name="ComboBoxEntryControl"
+             mc:Ignorable="d" 
+             d:DesignWidth="200">
+    <Grid>
+        <StackPanel Margin="20 10">
+            <TextBlock Margin="13 0"
+                    Name="TextBlockLabel"
+                    FontSize="12" 
+                    Text="{Binding LabelText}"
+                    HorizontalAlignment="Stretch"
+                    IsHitTestVisible="False"/>
+            <ComboBox 
+                 Name="ComboBox1"
+                 SelectionChanged="ComboBox1_SelectionChanged"
+                 ItemsSource="{Binding ElementName=ComboBoxEntryControl,Path=ItemSource,Mode=TwoWay}"
+                 DisplayMemberPath="{Binding ElementName=ComboBoxEntryControl,Path=DisplayPathName,Mode=TwoWay}"
+                 SelectedItem="{Binding ElementName=ComboBoxEntryControl,Path=SelectedItem,Mode=TwoWay}"
+                 SelectedValue="{Binding ElementName=ComboBoxEntryControl,Path=SelectedValue,UpdateSourceTrigger=LostFocus,Mode=TwoWay}"
+                 SelectedValuePath="{Binding ElementName=ComboBoxEntryControl,Path=SelectedValuePath,Mode=TwoWay}"
+                 Margin="10 10 10 10"
+                 FontSize="12px"
+                 Padding="18 8"
+                 BorderThickness="1"
+                 IsReadOnly="{Binding ReadOnly}"
+                 HorizontalAlignment="Stretch" 
+                 Text="{Binding ElementName=ComboBoxEntryControl,Path=Text,Mode=TwoWay}">
+                <Validation.ErrorTemplate>
+                    <ControlTemplate>
+                        <StackPanel>
+                            <AdornedElementPlaceholder/>
+                            <TextBlock Text="{Binding [0].ErrorContent}" Foreground="{DynamicResource RequiredFieldForeground}"/>
+                        </StackPanel>
+                    </ControlTemplate>
+                </Validation.ErrorTemplate>
+            </ComboBox>
+        </StackPanel>
+    </Grid>
+</UserControl>
