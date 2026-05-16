@@ -1,4 +1,4 @@
-using Microsoft.Data.SqlClient.Server;
+﻿using Microsoft.Data.SqlClient.Server;
 using Microsoft.IdentityModel.Tokens;
 using StationeryStoreManagementSystem.BL;
 using StationeryStoreManagementSystem.DL;
@@ -28,7 +28,20 @@ namespace StationeryStoreManagementSystem.UI
     {
         DispatcherTimer cameraTimer = new DispatcherTimer();
         DispatcherTimer ipWebcamTimer = new DispatcherTimer();
-        BarcodeReader codeReader = new BarcodeReader();
+        BarcodeReader codeReader = new BarcodeReader
+        {
+            AutoRotate = true,
+            TryInverted = true,
+            Options = new ZXing.Common.DecodingOptions
+            {
+                TryHarder = true,
+                PureBarcode = false,
+                PossibleFormats = new List<BarcodeFormat>
+        {
+    BarcodeFormat.CODE_128,
+}
+            }
+        };
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
         Order order;
         int invoiceNumber = -1;
@@ -44,27 +57,38 @@ namespace StationeryStoreManagementSystem.UI
             ProductDataGrid.CanUserAddRows = false;
             DataContext = order;
 
-            // Physical USB/built-in camera (used in shop with real scanner machine)
-            if (!GlobalSettings.UseIpWebcam && !GlobalSettings.CameraName.IsNullOrEmpty())
+            // --- CAMERA SWITCHING LOGIC ---
+
+           
+            if (GlobalSettings.UseIpWebcam && !string.IsNullOrEmpty(GlobalSettings.IpWebcamUrl))
             {
-                vce.VideoCaptureSource = GlobalSettings.CameraName;
-                cameraTimer.IsEnabled = true;
-                cameraTimer.Interval = TimeSpan.FromMilliseconds(300);
-                cameraTimer.Tick += CameraTimer_Tick;
-                cameraStatusText.Text = "Camera: " + GlobalSettings.CameraName;
-            }
-            // IP Webcam mode (mobile phone as barcode reader for testing)
-            else if (GlobalSettings.UseIpWebcam && !GlobalSettings.IpWebcamUrl.IsNullOrEmpty())
-            {
-                vce.Visibility = Visibility.Collapsed;
+                vce.Visibility = Visibility.Collapsed;       
                 ipWebcamImage.Visibility = Visibility.Visible;
+
                 ipWebcamTimer.Interval = TimeSpan.FromMilliseconds(400);
                 ipWebcamTimer.Tick += IpWebcamTimer_Tick;
                 ipWebcamTimer.Start();
+
                 cameraStatusText.Text = "IP Cam: " + GlobalSettings.IpWebcamUrl;
+            }
+            // Case 2: Agar Physical Camera (USB) use ho raha hai
+            else if (!string.IsNullOrEmpty(GlobalSettings.CameraName))
+            {
+                ipWebcamImage.Visibility = Visibility.Collapsed; 
+                vce.Visibility = Visibility.Visible;          
+
+                vce.VideoCaptureSource = GlobalSettings.CameraName;
+
+                cameraTimer.Interval = TimeSpan.FromMilliseconds(300);
+                cameraTimer.Tick += CameraTimer_Tick;
+                cameraTimer.Start();
+
+                cameraStatusText.Text = "Camera: " + GlobalSettings.CameraName;
             }
             else
             {
+                vce.Visibility = Visibility.Collapsed;
+                ipWebcamImage.Visibility = Visibility.Collapsed;
                 cameraStatusText.Text = "No camera configured";
             }
 
@@ -162,22 +186,23 @@ namespace StationeryStoreManagementSystem.UI
                 string url = GlobalSettings.IpWebcamUrl!.TrimEnd('/') + "/shot.jpg";
                 var bytes = await _httpClient.GetByteArrayAsync(url);
 
-                // Show frame in UI
+                // Show frame in UI (unchanged)
                 using var ms = new MemoryStream(bytes);
                 var bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
                 bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
                 bitmapImage.StreamSource = ms;
                 bitmapImage.EndInit();
+                bitmapImage.Freeze();
                 ipWebcamImage.Source = bitmapImage;
 
-                // Decode barcode
+                // Decode barcode — 3 pass detection
                 using var bmp = new Bitmap(new MemoryStream(bytes));
-                var result = codeReader.Decode(bmp);
-                if (result != null)
+                var resultText = TryDecode(bmp);
+                if (resultText != null)
                 {
-                    AddProductByBarcode(result.ToString());
-                    cooldown = 50;
+                    AddProductByBarcode(resultText);
+                    
                 }
             }
             catch { }
@@ -185,12 +210,14 @@ namespace StationeryStoreManagementSystem.UI
 
         private void AddProductByBarcode(string code)
         {
-            order.AddProduct(code.Trim(), 1);
-            RefreshData();
-            // Flash product ID field to show scan
+            string trimmed = code.Trim();
+            if (productIdField.Text == trimmed) return;
+
+            cooldown = 50;
             Dispatcher.Invoke(() => {
-                productIdField.Text = code.Trim();
-                productIdField.SelectAll();
+                productIdField.Text = trimmed;
+                quantityField.Focus();
+                quantityField.SelectAll();
             });
         }
 
@@ -321,6 +348,54 @@ namespace StationeryStoreManagementSystem.UI
                 document.DefaultPageSettings.PrinterSettings.PrinterName = GlobalSettings.PrinterName;
             document.PrintPage += BillContent;
             document.Print();
+        }
+
+        private string TryDecode(Bitmap original)
+        {
+            // Pass 1: original as-is
+            var r1 = codeReader.Decode(original);
+            if (r1 != null) return r1.Text;
+
+            // Pass 2: grayscale + contrast boost
+            try
+            {
+                using var gray = ToGrayscaleHighContrast(original);
+                var r2 = codeReader.Decode(gray);
+                if (r2 != null) return r2.Text;
+            }
+            catch { }
+
+            // Pass 3: scale up 2x
+            try
+            {
+                using var scaled = new Bitmap(original, original.Width * 2, original.Height * 2);
+                var r3 = codeReader.Decode(scaled);
+                if (r3 != null) return r3.Text;
+            }
+            catch { }
+
+            return null;
+        }
+
+        private static Bitmap ToGrayscaleHighContrast(Bitmap src)
+        {
+            var dest = new Bitmap(src.Width, src.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            using var g = Graphics.FromImage(dest);
+            float c = 1.6f;
+            float t = -0.3f;
+            var cm = new System.Drawing.Imaging.ColorMatrix(new float[][]
+            {
+        new float[] { c*0.299f, c*0.299f, c*0.299f, 0, 0 },
+        new float[] { c*0.587f, c*0.587f, c*0.587f, 0, 0 },
+        new float[] { c*0.114f, c*0.114f, c*0.114f, 0, 0 },
+        new float[] { 0,        0,        0,        1, 0 },
+        new float[] { t,        t,        t,        0, 1 },
+            });
+            var ia = new System.Drawing.Imaging.ImageAttributes();
+            ia.SetColorMatrix(cm);
+            g.DrawImage(src, new System.Drawing.Rectangle(0, 0, src.Width, src.Height),
+                0, 0, src.Width, src.Height, GraphicsUnit.Pixel, ia);
+            return dest;
         }
 
         public void BillContent(object sender, PrintPageEventArgs e)

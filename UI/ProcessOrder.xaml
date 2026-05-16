@@ -8,7 +8,8 @@
              mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="1100">
 
     <Grid>
-        <Grid.Background><SolidColorBrush Color="#F0F4F8"/></Grid.Background>
+        <Grid.Background>
+            <SolidColorBrush Color="#F5F5DC"/></Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="60"/>
             <RowDefinition Height="Auto"/>
@@ -19,7 +20,10 @@
 
         <!-- Header -->
         <Border Grid.Row="0" Padding="25,0">
-            <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#1565C0" Offset="0"/><GradientStop Color="#0D47A1" Offset="1"/></LinearGradientBrush></Border.Background>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#001F3F" Offset="0"/>
+                    <GradientStop Color="#001529" Offset="1"/></LinearGradientBrush></Border.Background>
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -172,7 +176,10 @@
 
         <!-- Footer bar -->
         <Border Grid.Row="4">
-            <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#0D47A1" Offset="0"/><GradientStop Color="#1565C0" Offset="1"/></LinearGradientBrush></Border.Background>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#001F3F" Offset="0"/>
+                    <GradientStop Color="#001529" Offset="1"/></LinearGradientBrush></Border.Background>
             <Grid Margin="20,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="180"/>
@@ -181,11 +188,20 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Camera preview -->
-                <Border Width="160" Height="90" CornerRadius="4" ClipToBounds="True" Background="#0A2472" Margin="5">
+                <Border Grid.Column="0" Width="160" Height="90" CornerRadius="4" ClipToBounds="True" Background="Black" Margin="5">
                     <Grid>
-                        <wpfmedia:VideoCaptureElement x:Name="vce" DesiredPixelWidth="320" DesiredPixelHeight="240"/>
-                        <Image x:Name="ipWebcamImage" Visibility="Collapsed" Stretch="UniformToFill"/>
-                        <Border CornerRadius="4" BorderBrush="#3B82F6" BorderThickness="1"/>
+                        <wpfmedia:VideoCaptureElement x:Name="vce" 
+                                      DesiredPixelWidth="320" 
+                                      DesiredPixelHeight="240" 
+                                      Stretch="UniformToFill" 
+                                      Visibility="Collapsed"/>
+                        <Image x:Name="ipWebcamImage" 
+                               Width="160"
+       Height="90"
+               Stretch="UniformToFill" 
+                              
+               Visibility="Collapsed"/>
+                        <Border CornerRadius="4" BorderBrush="#FFC107" BorderThickness="1.5" IsHitTestVisible="False"/>
                     </Grid>
                 </Border>
 
