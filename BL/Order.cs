@@ -32,7 +32,10 @@ namespace StationeryStoreManagementSystem.BL
             {
                 get
                 {
-                    return (double)((Product.Category.GST * UnitPrice)/100);
+                    // Add a check to see if Product or Category is null
+                    if (Product?.Category == null) return 0;
+
+                    return (double)((Product.Category.GST * UnitPrice) / 100);
                 }
             }
             public double TotalPrice
@@ -74,7 +77,7 @@ namespace StationeryStoreManagementSystem.BL
         public Order()
         {
             Products = new List<OrderProduct>();
-            productsLookup = new Dictionary<string, Product>();
+            productsLookup = new Dictionary<string, Product>(StringComparer.OrdinalIgnoreCase);
             List<Product> listProducts = ProductDL.GetProducts();
             foreach(Product product  in listProducts)
             {
@@ -87,7 +90,7 @@ namespace StationeryStoreManagementSystem.BL
         {
             productID = productID.Trim();
 
-            // ── PATH 1: System-generated barcode (ProductCode 5 + SupplierCode 3 = 8 chars) ──
+            // ── PATH 1: System-generated barcode (8 chars) ──
             if (productID.Length == 8)
             {
                 string productCode = productID.Substring(0, 5);
@@ -105,31 +108,36 @@ namespace StationeryStoreManagementSystem.BL
                             orderProduct.Quantity += quantity;
                     }
                 }
-                return; // handled
+                return;
             }
 
-            // ── PATH 2: External barcode (any length that is NOT 8 chars) ──
-            // Check if it matches any product's ExternalBarcode in the in-memory lookup first
+            // ── PATH 2: External barcode (NOT 8 chars) ──
             Product? extProduct = productsLookup.Values
                 .FirstOrDefault(p => !string.IsNullOrEmpty(p.ExternalBarcode)
                                   && p.ExternalBarcode.Trim() == productID);
 
             if (extProduct == null)
             {
-                // Fallback: hit the DB (handles products loaded before this session)
                 extProduct = DL.ProductDL.GetProductByExternalBarcode(productID);
             }
 
+            // ── NEW PATH 3: Internal Code Fallback (Handles bp001, etc.) ──
+            if (extProduct == null && productsLookup.ContainsKey(productID))
+            {
+                extProduct = productsLookup[productID];
+            }
+
+            // ── FINAL ADDITION LOGIC ──
             if (extProduct != null && extProduct.Stocks != null && extProduct.Stocks.Count > 0)
             {
-                // Use the first available supplier's stock for checkout
+                // Use the first available supplier's stock
                 Stock stock = extProduct.Stocks[0];
                 if (stock.Supplier != null)
                 {
-                    string orderCode = extProduct.ExternalBarcode; // keep original scanned value as cart key
-                    OrderProduct? orderProduct = Products.Find(x => x.Code == orderCode);
+                    // Use the entered productID as the key in the cart
+                    OrderProduct? orderProduct = Products.Find(x => x.Code == productID);
                     if (orderProduct == null)
-                        Products.Add(new OrderProduct(orderCode, extProduct, stock.Supplier, quantity, stock.RetailPrice, stock.DiscountAmount));
+                        Products.Add(new OrderProduct(productID, extProduct, stock.Supplier, quantity, stock.RetailPrice, stock.DiscountAmount));
                     else
                         orderProduct.Quantity += quantity;
                 }
