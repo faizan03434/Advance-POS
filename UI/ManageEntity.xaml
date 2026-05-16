@@ -8,12 +8,33 @@
              xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid Background="#F5F5DC">
         <Grid.RowDefinitions>
-            <RowDefinition Height="60px"/>
-            <RowDefinition/>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Components:TitleBlock x:Name="TitleBlock" Grid.Row="0"/>
-        <Components:DataViewer x:Name="dataGridView" Grid.Row="1"/>
+
+        <Border Grid.Row="0" Panel.ZIndex="1">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#002D62" Offset="0"/>
+                    <GradientStop Color="#002D62" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="15" 
+                          ShadowDepth="3" 
+                          Opacity="0.4" 
+                          Direction="270" 
+                          Color="Black"/>
+            </Border.Effect>
+
+            <Components:TitleBlock x:Name="TitleBlock" VerticalAlignment="Center" Margin="25,0"/>
+        </Border>
+
+        <Border Grid.Row="1" Margin="15">
+            <Components:DataViewer x:Name="dataGridView"/>
+        </Border>
     </Grid>
 </UserControl>

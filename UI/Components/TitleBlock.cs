@@ -19,9 +19,14 @@ namespace StationeryStoreManagementSystem.UI.Components
         }
         public TitleBlock()
         {
-            FontSize = 20;
-            Padding = new Thickness(10);
+            FontSize = 22;
+            Padding = new Thickness(20, 0, 0, 0);
             VerticalAlignment = VerticalAlignment.Center;
+
+            // Ye rahi wo do lines:
+            this.Background = System.Windows.Media.Brushes.Transparent;
+            this.Foreground = System.Windows.Media.Brushes.White;
+
             InitializeComponent();
         }
     }

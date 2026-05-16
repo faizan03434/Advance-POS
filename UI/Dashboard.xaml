@@ -8,23 +8,30 @@
              mc:Ignorable="d" d:DesignHeight="1800" d:DesignWidth="1000">
 
     <Grid>
-        <Grid.Background><SolidColorBrush Color="#F0F4F8"/></Grid.Background>
+        <Grid.Background><SolidColorBrush Color="Beige"/></Grid.Background>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,0,0,40">
 
                 <!-- Header -->
                 <Border Padding="25,18" Margin="0,0,0,0">
-                    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#1565C0" Offset="0"/><GradientStop Color="#0D47A1" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#002D62" Offset="0"/>
+                            <GradientStop Color="#002D62" Offset="1"/></LinearGradientBrush></Border.Background>
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <StackPanel>
-                            <TextBlock Text="Dashboard" Foreground="White" FontSize="22" FontWeight="SemiBold"/>
+                            <TextBlock Text="Dashboard" Foreground="White" FontSize="22" FontWeight="Bold"/>
                             <TextBlock x:Name="todayDateText" Foreground="#90CAF9" FontSize="12" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button x:Name="NotificationButton" Grid.Column="1" Width="44" Height="44"
                                 Click="NotificationButton_Click" Background="Transparent" BorderThickness="0" Cursor="Hand">
                             <Grid>
-                                <Image Source="{DynamicResource ResourceKey=bellIcon}" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <Image Source="{DynamicResource ResourceKey=bellIcon}" RenderOptions.BitmapScalingMode="HighQuality">
+                                    <Image.Effect>
+                                        <DropShadowEffect BlurRadius="5" ShadowDepth="0" Color="White" Opacity="1"/>
+                                    </Image.Effect>
+                                </Image>
                                 <Border x:Name="alertBadge" Background="#EF4444" CornerRadius="8" Width="16" Height="16"
                                         HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,2,0" Visibility="Collapsed">
                                     <TextBlock x:Name="alertBadgeCount" Text="0" Foreground="White" FontSize="9" FontWeight="Bold"
@@ -85,12 +92,12 @@
                 <Border x:Name="alertsPanel" Margin="20,16,20,0" Background="White" CornerRadius="10" Visibility="Collapsed">
                     <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
                     <StackPanel>
-                        <Border Background="#FEF3C7" CornerRadius="10,10,0,0" Padding="16,12">
+                        <Border Background="#807F7C" CornerRadius="10,10,0,0" Padding="16,12">
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <TextBlock Text="⚠ Active Alerts" FontWeight="Bold" FontSize="14" Foreground="#92400E"/>
-                                <Button Grid.Column="1" Content="Refresh" Background="#F59E0B" Foreground="White"
-                                        BorderThickness="0" Padding="10,4" Cursor="Hand" Click="RefreshAlerts_Click" FontSize="12">
+                                <TextBlock Text="⚠ Active Alerts" FontWeight="Bold" FontSize="18" Foreground="White"/>
+                                <Button Grid.Column="1" Content="Refresh" Background="#547BE8" Foreground="White" FontWeight="Medium"
+                                        BorderThickness="0" Padding="20,8" Cursor="Hand" Click="RefreshAlerts_Click" FontSize="14">
                                     <Button.Style><Style TargetType="Button"><Setter Property="Template"><Setter.Value>
                                         <ControlTemplate TargetType="Button">
                                             <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">

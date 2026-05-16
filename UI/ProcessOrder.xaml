@@ -22,8 +22,8 @@
         <Border Grid.Row="0" Padding="25,0">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="#001F3F" Offset="0"/>
-                    <GradientStop Color="#001529" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <GradientStop Color="#002D62" Offset="0"/>
+                    <GradientStop Color="#002D62" Offset="1"/></LinearGradientBrush></Border.Background>
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -179,7 +179,7 @@
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="#001F3F" Offset="0"/>
-                    <GradientStop Color="#001529" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <GradientStop Color="#001F3F" Offset="1"/></LinearGradientBrush></Border.Background>
             <Grid Margin="20,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="180"/>

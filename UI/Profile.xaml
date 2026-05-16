@@ -7,41 +7,100 @@
              xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
              xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
              mc:Ignorable="d" 
-             d:DesignHeight="570" d:DesignWidth="800">
+             d:DesignHeight="650" d:DesignWidth="900">
     <Grid>
+        <Grid.Background>
+            <SolidColorBrush Color="#F5F5DC"/>
+        </Grid.Background>
+
         <Grid.RowDefinitions>
-            <RowDefinition Height="60px"/>
+            <RowDefinition Height="65"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Components:TitleBlock Grid.Row="0" x:Name="titleBlock" Title="Profile"/>
+
+        <Border Grid.Row="0" Panel.ZIndex="1">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#002D62" Offset="0"/>
+                    <GradientStop Color="#002D62" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.4" Direction="270" Color="Black"/>
+            </Border.Effect>
+            <Components:TitleBlock x:Name="titleBlock" Title="User Profile" VerticalAlignment="Center" Margin="25,0"/>
+        </Border>
+
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Grid ScrollViewer.CanContentScroll="True">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
+            <StackPanel Margin="50,30" MaxWidth="1200" HorizontalAlignment="Stretch">
 
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
+                <TextBlock Text="Personal Information" FontSize="20" FontWeight="Bold" Foreground="#002D62" Margin="0,0,0,15"/>
 
-                <Controls:TextEntry Grid.Row="0" Grid.Column="0" x:Name="name" LabelText="Full Name" MaxLength="30" IsReadOnly="True"/>
-                <Controls:TextEntry Grid.Row="0" Grid.Column="1" Text="{Binding Email}" LabelText="Email" MaxLength="50" IsReadOnly="True"/>
+                <Border Background="White" CornerRadius="12" Padding="35" Margin="0,0,0,30">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.12" Color="Black"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                <Controls:TextEntry Grid.Row="1" Grid.Column="0" Text="{Binding CNIC}" LabelText="CNIC" MaxLength="13" IsReadOnly="True"/>
-                <Controls:TextEntry Grid.Row="1" Grid.Column="1" Text="{Binding Contact}" LabelText="Contact Number" MaxLength="11" IsReadOnly="True"/>
+                        <Controls:TextEntry Grid.Row="0" Grid.Column="0" x:Name="name" LabelText="Full Name" IsReadOnly="True" Margin="0,0,20,25"/>
+                        <Controls:TextEntry Grid.Row="0" Grid.Column="1" Text="{Binding Email}" LabelText="Email" IsReadOnly="True" Margin="20,0,0,25"/>
+                        <Controls:TextEntry Grid.Row="1" Grid.Column="0" Text="{Binding CNIC}" LabelText="CNIC" IsReadOnly="True" Margin="0,0,20,0"/>
+                        <Controls:TextEntry Grid.Row="1" Grid.Column="1" Text="{Binding Contact}" LabelText="Contact Number" IsReadOnly="True" Margin="20,0,0,0"/>
+                    </Grid>
+                </Border>
 
-                <Controls:TextEntry x:Name="password_box" Grid.Row="3" Grid.Column="0" LabelText="New Password" MaxLength="5" />
-                <Button x:Name="ChangePassword" Grid.Row="3" Grid.Column="1" Height="60" Width="250" HorizontalAlignment="Center" Content="Change Password" Click="ChangePasswordButton_Click"/>
+                <TextBlock Text="Security" FontSize="20" FontWeight="Bold" Foreground="#002D62" Margin="0,0,0,15"/>
+                <Border Background="White" CornerRadius="12" Padding="35" Margin="0,0,0,30">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.12" Color="Black"/>
+                    </Border.Effect>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Controls:TextEntry x:Name="password_box" Grid.Column="0" LabelText="New Password" MaxLength="20" VerticalAlignment="Bottom"/>
+                        <Button x:Name="ChangePassword" Grid.Column="1" Height="45" Width="200" Margin="30,0,0,0" 
+                                Content="Change Password" VerticalAlignment="Bottom" Cursor="Hand"
+                                Click="ChangePasswordButton_Click" Background="#51A86A" Foreground="White" FontWeight="Medium" FontSize="13" BorderThickness="0">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </Grid>
+                </Border>
 
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,40">
+                    <Button Content="Back" Click="BackButton_Click" Width="120" Height="45" Background="#3260BF" 
+                            Foreground="White" FontSize="14"  BorderBrush="#002D62" BorderThickness="1.5" Margin="0,0,20,0" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
-                <Button x:Name="LogoutButton" Grid.Row="4" Grid.Column="0" Height="50" Width="100" HorizontalAlignment="Right" Margin="0 0 30 0" Content="Logout" Click="LogoutButton_Click"/>
-                <Button Grid.Row="4" Grid.Column="1" Height="50" Width="100" HorizontalAlignment="Left" Margin="30 0 0 0" Content="Back" Click="BackButton_Click"/>
-            </Grid>
+                    <Button x:Name="LogoutButton" Content="Logout" Click="LogoutButton_Click" Width="120" Height="45" 
+                            Background="#EF4444" Foreground="White" FontSize="14" BorderThickness="0" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </StackPanel>
+
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </UserControl>
