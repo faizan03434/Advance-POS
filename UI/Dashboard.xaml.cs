@@ -299,13 +299,24 @@ namespace StationeryStoreManagementSystem.UI
 
             if (isExpiry && !alert.DiscountApplied)
             {
-                var discBtn = new Button { Content = "Apply 15% Discount", Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B")), Foreground = new SolidColorBrush(Colors.White), BorderThickness = new Thickness(0), Padding = new Thickness(10, 5, 10, 5), Margin = new Thickness(0, 0, 0, 4), Cursor = System.Windows.Input.Cursors.Hand, FontSize = 11 };
+                var discBtn = new Button { Content = "Manage Discount", Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B")), Foreground = new SolidColorBrush(Colors.White), BorderThickness = new Thickness(0), Padding = new Thickness(10, 5, 10, 5), Margin = new Thickness(0, 0, 0, 4), Cursor = System.Windows.Input.Cursors.Hand, FontSize = 11 };
                 var capturedAlert = alert;
-                discBtn.Click += async (s, e) => {
-                    discBtn.IsEnabled = false;
-                    discBtn.Content = "Applying...";
-                    await AlertService.ApplyExpiryDiscountAsync(capturedAlert.ProductId, 15);
-                    discBtn.Content = "✓ Discount Applied";
+
+                discBtn.Click += (s, e) => {
+                    // Popup open hoga aur code yahan ruk jayega jab tak popup band na ho
+                    DiscountPopup popup = new DiscountPopup(capturedAlert.ProductId, capturedAlert.ProductName);
+                    popup.Owner = Window.GetWindow(this);
+                    popup.ShowDialog();
+
+                    // Jaise hi Admin "Apply Discount" dabayega tou IsSuccess true ho jayega
+                    if (popup.IsSuccess)
+                    {
+                        // 1. Naya bulletproof method call kiya jo DB mein exact amount save karega
+                        AlertService.AcknowledgeAlert(capturedAlert.ProductId, capturedAlert.Type, $"Applied manual discount of Rs. {popup.NewDiscount}");
+
+                        // 2. Dashboard ko refresh kar do taake ye card screen se permanently hat jaye
+                        RefreshAlerts_Click(null, null);
+                    }
                 };
                 btnPanel.Children.Add(discBtn);
             }
