@@ -9,7 +9,7 @@ namespace StationeryStoreManagementSystem
 {
     class Configuration
     {
-        String ConnectionStr = @"Data Source=Localhost;Initial Catalog=newdb.bacpac;Integrated Security=True;Encrypt=False";
+        String ConnectionStr = @"Data Source=Localhost;Initial Catalog=newdb;Integrated Security=True;Encrypt=False;MultipleActiveResultSets=True";
         SqlConnection con;
         private static Configuration _instance;
         public static Configuration getInstance()
@@ -25,6 +25,11 @@ namespace StationeryStoreManagementSystem
         }
         public SqlConnection getConnection()
         {
+            // If the connection was closed for some reason, re-open it
+            if (con.State == System.Data.ConnectionState.Closed || con.State == System.Data.ConnectionState.Broken)
+            {
+                con.Open();
+            }
             return con;
         }
     }

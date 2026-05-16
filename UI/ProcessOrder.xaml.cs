@@ -89,10 +89,24 @@ namespace StationeryStoreManagementSystem.UI
             }
         }
 
+        
         // Tab order: Product ID -> Qty -> Add -> Customer -> Received -> Confirm
         private void productIdField_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter) quantityField.Focus();
+            if (e.Key == Key.Enter)
+            {
+                string pid = productIdField.Text?.Trim() ?? "";
+                if (!string.IsNullOrEmpty(pid))
+                {
+                    // This triggers the addition/search logic immediately 
+                    // when Enter is pressed in the Product ID field.
+                    AddProductFromFields();
+                }
+                else
+                {
+                    quantityField.Focus();
+                }
+            }
         }
 
         private void quantityField_KeyUp(object sender, KeyEventArgs e)
