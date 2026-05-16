@@ -80,7 +80,10 @@ namespace StationeryStoreManagementSystem.BL
             else
             {
                 // Save the external barcode image using the raw scanned value
-                Utils.GenerateBarcode(ExternalBarcode);
+                // Only generate if the image doesn't already exist (it may have been captured from camera)
+                string barcodePath = $"barcodes/{ExternalBarcode}.png";
+                if (!System.IO.File.Exists(barcodePath))
+                    Utils.GenerateBarcode(ExternalBarcode);
             }
         }
     }

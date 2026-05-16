@@ -1,12 +1,13 @@
-﻿// NEW FILE: UI/ExternalBarcodeForm.xaml.cs
-
-using StationeryStoreManagementSystem.BL;
+﻿using StationeryStoreManagementSystem.BL;
 using StationeryStoreManagementSystem.DL;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.IO;
-using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -17,86 +18,220 @@ namespace StationeryStoreManagementSystem.UI
 {
     public partial class ExternalBarcodeForm : AbstractEntryForm, IValidationFields
     {
+        // ── State ───────────────────────────────────────────────────────
         private Product _product;
+        private Bitmap _capturedBarcodeImage;
 
+        // Two DataTables that back the two grids
+        private DataTable _selectedTable;    // suppliers already chosen
+        private DataTable _availableTable;   // suppliers still available
+
+        // Track which row in _selectedTable is being priced right now
+        private int _pricingRowIndex = -1;
+
+        // In-memory price store: supplierId → (cost, retail, discount)
+        private readonly Dictionary<int, (double cost, double retail, double discount)>
+            _prices = new Dictionary<int, (double, double, double)>();
+
+        private static readonly HttpClient _http = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(6)
+        };
+
+        // ── Constructor ─────────────────────────────────────────────────
         public ExternalBarcodeForm(ManageEntity callingInstance) : base(callingInstance)
         {
             InitializeComponent();
-
             _product = new Product();
 
-            // Populate combo boxes
-            List<Company> companies = CompanyDL.GetCompanies();
-            List<Category> categories = CategoryDL.GetCategories();
+            // Dropdowns
+            var companies = CompanyDL.GetCompanies();
+            var categories = CategoryDL.GetCategories();
             CompanyField.ItemSource = companies;
             CompanyField.DisplayPathName = "Name";
             CategoryField.ItemSource = categories;
             CategoryField.DisplayPathName = "Name";
 
-            // Supplier picker (same pattern as ProductForm)
-            List<(string, string)> bindings = new List<(string, string)> {
-                ("Name","Name"), ("Contact","Contact"), ("Email","Email"),
-                ("Street Address","StreetAddress"), ("Town","Town"),
-                ("City","City"), ("Country","Country"), ("Postal Code","PostalCode")};
-
-            suppliersDataHandler.SearchAttributes = new List<string> { "Name" };
-            suppliersDataHandler.IsSelect = true;
-            suppliersDataHandler.SetBindings(bindings);
-
+            // Load all suppliers from DB
             DataTable allSuppliers = SupplierDL.GetSuppliersView();
-            suppliersDataHandler.ItemSource = allSuppliers.DefaultView;
-            suppliersDataHandler.SelectButtonClicked += SuppliersDataHandler_SelectButtonClicked;
 
-            // Build supplier display columns in selected grid
-            for (int i = bindings.Count - 1; i >= 0; i--)
+            // _selectedTable  — starts empty, same schema
+            _selectedTable = allSuppliers.Clone();
+            // _availableTable — starts with all suppliers
+            _availableTable = allSuppliers.Copy();
+
+            // ── Build text columns for SuppliersDataGrid (selected) ────
+            // Price columns first so they appear after the action column
+            string[] priceHeaders = { "Cost Price", "Retail Price", "Discount" };
+            string[] priceFields  = { "_cost",       "_retail",      "_discount" };
+            foreach (var h in priceHeaders)
             {
-                var col = new DataGridTextColumn
-                {
-                    Header = bindings[i].Item1,
-                    Binding = new System.Windows.Data.Binding(bindings[i].Item2),
-                    IsReadOnly = true
-                };
-                SuppliersDataGrid.Columns.Insert(0, col);
+                _selectedTable.Columns.Add(h, typeof(string));
             }
-            SuppliersDataGrid.AutoGenerateColumns = false;
-            SuppliersDataGrid.CanUserAddRows = false;
-            SuppliersDataGrid.ItemsSource = allSuppliers.Clone().DefaultView; // empty table, same schema
+
+            AddTextColumns(SuppliersDataGrid,
+                new[] { "Name", "Contact" },
+                new[] { "Name", "Contact" });
+            AddTextColumns(SuppliersDataGrid,
+                priceHeaders, priceHeaders);   // header == column name in DataTable
+
+            // ── Build text columns for AvailableSuppliersGrid ──────────
+            AddTextColumns(AvailableSuppliersGrid,
+                new[] { "Name", "Contact", "Email", "City" },
+                new[] { "Name", "Contact", "Email", "City" });
+
+            SuppliersDataGrid.ItemsSource    = _selectedTable.DefaultView;
+            AvailableSuppliersGrid.ItemsSource = _availableTable.DefaultView;
 
             DataContext = _product;
         }
 
-        // ── Supplier selection ──────────────────────────────────────────
-        private void SuppliersDataHandler_SelectButtonClicked(DataGrid dg, int idx)
+        // Helper: add read-only text columns to a DataGrid
+        private static void AddTextColumns(DataGrid dg,
+            string[] headers, string[] bindings)
         {
-            DataRow row = ((DataRowView)dg.SelectedItem).Row;
-            ((DataView)SuppliersDataGrid.ItemsSource).Table.Rows.Add(row.ItemArray);
-            ((DataView)suppliersDataHandler.ItemSource).Table.Rows.Remove(row);
-        }
-
-        private void RemoveSupplierBtn_Click(object sender, RoutedEventArgs e)
-        {
-            DataRow row = ((DataRowView)SuppliersDataGrid.SelectedItem).Row;
-            ((DataView)suppliersDataHandler.ItemSource).Table.Rows.Add(row.ItemArray);
-            ((DataView)SuppliersDataGrid.ItemsSource).Table.Rows.Remove(row);
-        }
-
-        // ── Step 1: Camera scan ─────────────────────────────────────────
-        private void ScanBarcodeBtn_Click(object sender, RoutedEventArgs e)
-        {
-            // Reuse ProcessOrder camera logic: open a small overlay window that
-            // reads one frame and returns the decoded string.
-            var scanWindow = new BarcodeScanOverlay();
-            scanWindow.ShowDialog();
-            if (!string.IsNullOrEmpty(scanWindow.ScannedValue))
+            for (int i = 0; i < headers.Length; i++)
             {
-                _product.ExternalBarcode = scanWindow.ScannedValue;
-                ExternalBarcodeField.TextBoxText.Text = scanWindow.ScannedValue;
-                ShowBarcodePreview(scanWindow.ScannedValue);
-                SetLookupStatus("Barcode captured from camera.", "#16A34A");
+                dg.Columns.Add(new DataGridTextColumn
+                {
+                    Header    = headers[i],
+                    Binding   = new System.Windows.Data.Binding(bindings[i]),
+                    IsReadOnly = true,
+                    Width     = new DataGridLength(1, DataGridLengthUnitType.Star)
+                });
             }
         }
 
-        // ── Step 1: Lookup embedded data in barcode ─────────────────────
+        // ── Select supplier from available list ─────────────────────────
+        private void SelectSupplierBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (AvailableSuppliersGrid.SelectedItem is not DataRowView drv) return;
+            DataRow src = drv.Row;
+
+            // Add to selected table (price columns start empty)
+            DataRow newRow = _selectedTable.NewRow();
+            // Copy all original columns
+            for (int i = 0; i < src.Table.Columns.Count; i++)
+                newRow[i] = src[i];
+            // Price columns default
+            newRow["Cost Price"]   = "—";
+            newRow["Retail Price"] = "—";
+            newRow["Discount"]     = "—";
+            _selectedTable.Rows.Add(newRow);
+
+            // Remove from available
+            _availableTable.Rows.Remove(src);
+        }
+
+        // ── Remove supplier from selected list ──────────────────────────
+        private void RemoveSupplierBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (SuppliersDataGrid.SelectedItem is not DataRowView drv) return;
+            DataRow row = drv.Row;
+
+            // Put back in available (only original columns)
+            DataRow back = _availableTable.NewRow();
+            for (int i = 0; i < _availableTable.Columns.Count; i++)
+                back[i] = row[i];
+            _availableTable.Rows.Add(back);
+
+            // Remove price entry
+            int suppId = (int)row[0];
+            _prices.Remove(suppId);
+
+            _selectedTable.Rows.Remove(row);
+
+            // Hide price panel if it was open for this row
+            PricePanel.Visibility = Visibility.Collapsed;
+            _pricingRowIndex = -1;
+        }
+
+        // ── Set Price button ────────────────────────────────────────────
+        private void SetPriceBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (SuppliersDataGrid.SelectedItem is not DataRowView drv) return;
+            _pricingRowIndex = _selectedTable.Rows.IndexOf(drv.Row);
+
+            string supplierName = drv.Row["Name"]?.ToString() ?? "";
+            PricePanelTitle.Text = $"Set price for: {supplierName}";
+
+            // Pre-fill if already set
+            int suppId = (int)drv.Row[0];
+            if (_prices.TryGetValue(suppId, out var existing))
+            {
+                PriceField.TextBoxText.Text       = existing.cost.ToString("F2");
+                RetailPriceField.TextBoxText.Text = existing.retail.ToString("F2");
+                DiscountField.TextBoxText.Text    = existing.discount.ToString("F2");
+            }
+            else
+            {
+                PriceField.TextBoxText.Text       = "";
+                RetailPriceField.TextBoxText.Text = "";
+                DiscountField.TextBoxText.Text    = "0";
+            }
+
+            PricePanel.Visibility = Visibility.Visible;
+            PriceField.TextBoxText.Focus();
+        }
+
+        // ── Save Price ──────────────────────────────────────────────────
+        private void SavePriceBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_pricingRowIndex < 0 ||
+                _pricingRowIndex >= _selectedTable.Rows.Count) return;
+
+            if (!double.TryParse(PriceField.TextBoxText.Text, out double cost) || cost <= 0)
+            {
+                MessageBox.Show("Enter a valid Cost Price.", "Validation",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (!double.TryParse(RetailPriceField.TextBoxText.Text, out double retail) || retail <= 0)
+            {
+                MessageBox.Show("Enter a valid Retail Price.", "Validation",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            double.TryParse(DiscountField.TextBoxText.Text, out double discount);
+
+            DataRow row = _selectedTable.Rows[_pricingRowIndex];
+            int suppId  = (int)row[0];
+
+            // Store in dictionary
+            _prices[suppId] = (cost, retail, discount);
+
+            // Update display columns
+            row["Cost Price"]   = cost.ToString("F2");
+            row["Retail Price"] = retail.ToString("F2");
+            row["Discount"]     = discount.ToString("F2");
+
+            PricePanel.Visibility = Visibility.Collapsed;
+            _pricingRowIndex = -1;
+        }
+
+        // ── Camera scan ─────────────────────────────────────────────────
+        private void ScanBarcodeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var win = new BarcodeScanOverlay();
+            win.Owner = Window.GetWindow(this);
+            bool? result = win.ShowDialog();
+            if (result == true && !string.IsNullOrEmpty(win.ScannedValue))
+            {
+                _capturedBarcodeImage = win.CapturedBarcodeImage;
+                ApplyScannedBarcode(win.ScannedValue);
+            }
+        }
+
+        private void ApplyScannedBarcode(string barcode)
+        {
+            barcode = barcode.Trim();
+            _product.ExternalBarcode = barcode;
+            ExternalBarcodeField.TextBoxText.Text = barcode;
+            ShowBarcodePreview(barcode);
+            _ = RunLookupAsync(barcode);
+        }
+
+        // ── Manual lookup ───────────────────────────────────────────────
         private void LookupBarcodeBtn_Click(object sender, RoutedEventArgs e)
         {
             string raw = ExternalBarcodeField.TextBoxText.Text?.Trim() ?? "";
@@ -105,73 +240,128 @@ namespace StationeryStoreManagementSystem.UI
                 SetLookupStatus("Please enter or scan a barcode first.", "#DC2626");
                 return;
             }
-
             _product.ExternalBarcode = raw;
             ShowBarcodePreview(raw);
-
-            // Many GS1/EAN barcodes embed product name or GTIN — try simple decode
-            // Real-world barcodes usually do NOT embed names; we just prefill what we can.
-            bool decoded = TryDecodeBarcodeData(raw, out string detectedName);
-            if (decoded && !string.IsNullOrEmpty(detectedName))
-            {
-                if (string.IsNullOrEmpty(_product.Name))
-                    _product.Name = detectedName;
-                NameField.TextBoxText.Text = _product.Name;
-                SetLookupStatus($"Product info detected: \"{detectedName}\". Fill in remaining fields.", "#16A34A");
-            }
-            else
-            {
-                SetLookupStatus("No embedded product data found in this barcode. Please fill in details manually.", "#92400E");
-            }
+            _ = RunLookupAsync(raw);
         }
 
-        // Minimal GS1 data extraction — expand as needed
-        private bool TryDecodeBarcodeData(string raw, out string productName)
+        // ── Online lookup ───────────────────────────────────────────────
+        private async Task RunLookupAsync(string barcode)
         {
-            productName = null;
-            // GS1-128 Application Identifier 10 = batch, 11 = date, 30 = qty, etc.
-            // Many retail barcodes are pure GTINs with no embedded text.
-            // This stub returns false; plug in a real GS1 parser if needed.
-            return false;
+            Product existing = ProductDL.GetProductByExternalBarcode(barcode);
+            if (existing != null)
+            {
+                SetLookupStatus(
+                    $"⚠  Already registered as \"{existing.Name}\" (Code: {existing.Code}).",
+                    "#DC2626");
+                return;
+            }
+
+            SetLookupStatus("🔍  Looking up online...", "#3B82F6");
+            LookupBarcodeBtn.IsEnabled = false;
+            ScanBarcodeBtn.IsEnabled   = false;
+
+            try
+            {
+                BarcodeProductInfo info = null;
+                if (IsNumericBarcode(barcode))
+                    info = await FetchFromOpenFoodFactsAsync(barcode);
+
+                if (info != null)
+                {
+                    if (!string.IsNullOrEmpty(info.Name) &&
+                        string.IsNullOrWhiteSpace(_product.Name))
+                    {
+                        _product.Name = info.Name;
+                        NameField.TextBoxText.Text = info.Name;
+                    }
+                    if (!string.IsNullOrEmpty(info.Category))
+                        TryMatchCategory(info.Category);
+
+                    if (string.IsNullOrWhiteSpace(_product.Code))
+                    {
+                        string code = GenerateUniqueCode(info.Name ?? barcode, barcode);
+                        if (code != null)
+                        {
+                            _product.Code = code;
+                            CodeField.TextBoxText.Text = code;
+                        }
+                    }
+                    string msg = $"✓  Found: \"{info.Name}\"";
+                    if (!string.IsNullOrEmpty(info.Brand)) msg += $" by {info.Brand}";
+                    SetLookupStatus(msg + " — review and save.", "#16A34A");
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(_product.Code))
+                    {
+                        string code = GenerateUniqueCode(null, barcode);
+                        if (code != null)
+                        {
+                            _product.Code = code;
+                            CodeField.TextBoxText.Text = code;
+                        }
+                    }
+                    SetLookupStatus(
+                        "ℹ  Not found online. Code auto-generated — fill Name manually.",
+                        "#92400E");
+                }
+            }
+            catch
+            {
+                if (string.IsNullOrWhiteSpace(_product.Code))
+                {
+                    string code = GenerateUniqueCode(null, barcode);
+                    if (code != null)
+                    {
+                        _product.Code = code;
+                        CodeField.TextBoxText.Text = code;
+                    }
+                }
+                SetLookupStatus("⚠  No internet. Code auto-generated — fill details manually.",
+                    "#92400E");
+            }
+            finally
+            {
+                LookupBarcodeBtn.IsEnabled = true;
+                ScanBarcodeBtn.IsEnabled   = true;
+            }
         }
 
-        private void ShowBarcodePreview(string value)
+        private async Task<BarcodeProductInfo> FetchFromOpenFoodFactsAsync(string barcode)
         {
             try
             {
-                // Generate preview image in memory
-                var writer = new BarcodeWriter
+                string url  = $"https://world.openfoodfacts.org/api/v0/product/{barcode}.json";
+                string json = await _http.GetStringAsync(url);
+                using JsonDocument doc  = JsonDocument.Parse(json);
+                JsonElement root = doc.RootElement;
+                if (!root.TryGetProperty("status", out JsonElement st) || st.GetInt32() != 1)
+                    return null;
+                if (!root.TryGetProperty("product", out JsonElement prod))
+                    return null;
+
+                var info = new BarcodeProductInfo();
+                if (prod.TryGetProperty("product_name_en", out JsonElement en) &&
+                    en.GetString()?.Length > 0)
+                    info.Name = TitleCase(en.GetString());
+                else if (prod.TryGetProperty("product_name", out JsonElement pn) &&
+                         pn.GetString()?.Length > 0)
+                    info.Name = TitleCase(pn.GetString());
+
+                if (prod.TryGetProperty("brands", out JsonElement br) &&
+                    br.GetString()?.Length > 0)
+                    info.Brand = br.GetString().Split(',')[0].Trim();
+
+                if (prod.TryGetProperty("categories_tags", out JsonElement cats) &&
+                    cats.GetArrayLength() > 0)
                 {
-                    Format = BarcodeFormat.CODE_128,
-                    Options = { Width = 300, Height = 60, Margin = 2 }
-                };
-                var bitmap = writer.Write(value);
-                using var ms = new MemoryStream();
-                bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                ms.Seek(0, SeekOrigin.Begin);
-                var bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.StreamSource = ms;
-                bitmapImage.EndInit();
-                BarcodePreviewImage.Source = bitmapImage;
-                BarcodePreviewImage.Visibility = Visibility.Visible;
+                    string raw = cats[0].GetString() ?? "";
+                    info.Category = raw.Replace("en:", "").Replace("-", " ").Trim();
+                }
+                return (info.Name != null || info.Brand != null) ? info : null;
             }
-            catch { /* non-critical */ }
-        }
-
-        private void SetLookupStatus(string msg, string hexColor)
-        {
-            LookupStatusText.Text = msg;
-            LookupStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
-                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hexColor));
-            LookupStatusText.Visibility = Visibility.Visible;
-        }
-
-        private void ExpiryDatePicker_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            if (_product != null && ExpiryDatePicker.SelectedDate.HasValue)
-                _product.ExpiryDate = ExpiryDatePicker.SelectedDate.Value;
+            catch { return null; }
         }
 
         // ── Save ────────────────────────────────────────────────────────
@@ -179,30 +369,68 @@ namespace StationeryStoreManagementSystem.UI
         {
             if (HasValidationErrors()) return;
 
-            // Build supplier list from selected grid
+            // Build supplier + stock lists from selected table
             var suppliers = new List<Supplier>();
-            foreach (DataRow row in ((DataView)SuppliersDataGrid.ItemsSource).Table.Rows)
-                suppliers.Add(new Supplier((int)row.ItemArray[0]));
+            var stocks    = new List<Stock>();
+
+            foreach (DataRow row in _selectedTable.Rows)
+            {
+                int suppId = (int)row[0];
+                suppliers.Add(new Supplier(suppId));
+
+                if (_prices.TryGetValue(suppId, out var p))
+                {
+                    var sup = new Supplier(suppId);
+                    stocks.Add(new Stock(sup, p.cost, p.retail, p.discount, 0));
+                }
+            }
 
             _product.Suppliers = suppliers;
-            if (_product.Stocks == null) _product.Stocks = new List<Stock>();
+            _product.Stocks    = stocks;
 
-            // Save — Product.Save() will call Utils.GenerateBarcode(ExternalBarcode)
+            // Save captured barcode image
+            if (_capturedBarcodeImage != null &&
+                !string.IsNullOrWhiteSpace(_product.ExternalBarcode))
+            {
+                try
+                {
+                    string dir  = "barcodes";
+                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                    string path = Path.Combine(dir, $"{_product.ExternalBarcode}.png");
+                    _capturedBarcodeImage.Save(path,
+                        System.Drawing.Imaging.ImageFormat.Png);
+                }
+                catch { /* non-fatal */ }
+            }
+
             _product.Save(isAdd: true);
+
+            // Save price logs for each supplier
+            if (stocks.Count > 0)
+            {
+                var changes = new List<(int, int, string)>();
+                foreach (var s in stocks)
+                    changes.Add((s.Supplier.Id, 0, "Initial stock"));
+                ProductDL.SaveStockChanges(_product, changes);
+            }
+
+            ProductDL.SavePrices(_product);   // ← save prices to PriceLog
 
             NavigateCallingForm();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            NavigateCallingForm();
-        }
+            => NavigateCallingForm();
 
+        // ── Validation ──────────────────────────────────────────────────
         public bool HasValidationErrors()
         {
-            ExternalBarcodeField.TextBoxText.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-            NameField.TextBoxText.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-            CodeField.TextBoxText.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+            ExternalBarcodeField.TextBoxText
+                .GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+            NameField.TextBoxText
+                .GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+            CodeField.TextBoxText
+                .GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
             scrollViewer.ScrollToTop();
 
             if (string.IsNullOrWhiteSpace(_product.ExternalBarcode))
@@ -212,6 +440,117 @@ namespace StationeryStoreManagementSystem.UI
             }
             return Validation.GetHasError(NameField.TextBoxText)
                 || Validation.GetHasError(CodeField.TextBoxText);
+        }
+
+        // ── Helpers ─────────────────────────────────────────────────────
+        private void ShowBarcodePreview(string value)
+        {
+            try
+            {
+                var writer = new BarcodeWriter
+                {
+                    Format  = BarcodeFormat.CODE_128,
+                    Options = { Width = 300, Height = 55, Margin = 2 }
+                };
+                var bmp = writer.Write(value);
+                using var ms = new MemoryStream();
+                bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                ms.Seek(0, SeekOrigin.Begin);
+                var bi = new BitmapImage();
+                bi.BeginInit();
+                bi.CacheOption  = BitmapCacheOption.OnLoad;
+                bi.StreamSource = ms;
+                bi.EndInit();
+                BarcodePreviewImage.Source     = bi;
+                BarcodePreviewImage.Visibility = Visibility.Visible;
+            }
+            catch { }
+        }
+
+        private void SetLookupStatus(string msg, string hexColor)
+        {
+            LookupStatusText.Text       = msg;
+            LookupStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
+                (System.Windows.Media.Color)
+                System.Windows.Media.ColorConverter.ConvertFromString(hexColor));
+            LookupStatusText.Visibility = Visibility.Visible;
+        }
+
+        private bool IsNumericBarcode(string b)
+        {
+            if (b.Length < 8) return false;
+            foreach (char c in b) if (!char.IsDigit(c)) return false;
+            return true;
+        }
+
+        private string TitleCase(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            var words = s.Split(' ');
+            for (int i = 0; i < words.Length; i++)
+                if (words[i].Length > 0)
+                    words[i] = char.ToUpper(words[i][0]) +
+                               words[i].Substring(1).ToLower();
+            return string.Join(" ", words);
+        }
+
+        private void TryMatchCategory(string fetched)
+        {
+            if (CategoryField.ItemSource is not List<Category> cats) return;
+            foreach (var cat in cats)
+            {
+                if (cat.Name.IndexOf(fetched, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    fetched.IndexOf(cat.Name, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    CategoryField.SelectedItem = cat;
+                    return;
+                }
+            }
+        }
+
+        private string GenerateUniqueCode(string productName, string barcode)
+        {
+            string baseCode;
+            if (!string.IsNullOrWhiteSpace(productName))
+            {
+                string letters = "";
+                foreach (char c in productName.ToUpper())
+                    if (char.IsLetterOrDigit(c))
+                    {
+                        letters += c;
+                        if (letters.Length == 5) break;
+                    }
+                baseCode = letters.PadRight(5, '0').Substring(0, 5);
+            }
+            else
+            {
+                string tail = barcode.Length >= 5
+                    ? barcode.Substring(barcode.Length - 5)
+                    : barcode.PadLeft(5, '0');
+                baseCode = tail.Substring(0, 5).ToUpper();
+            }
+
+            if (!ProductDL.IsCodeTaken(baseCode)) return baseCode;
+            for (int i = 1; i <= 99; i++)
+            {
+                string sfx       = i.ToString();
+                string candidate = baseCode.Substring(0, 5 - sfx.Length) + sfx;
+                if (!ProductDL.IsCodeTaken(candidate)) return candidate;
+            }
+            return null;
+        }
+
+        private void ExpiryDatePicker_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (_product != null && ExpiryDatePicker.SelectedDate.HasValue)
+                _product.ExpiryDate = ExpiryDatePicker.SelectedDate.Value;
+        }
+
+        private class BarcodeProductInfo
+        {
+            public string Name     { get; set; }
+            public string Brand    { get; set; }
+            public string Category { get; set; }
         }
     }
 }

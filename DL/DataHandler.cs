@@ -92,27 +92,26 @@ namespace StationeryStoreManagementSystem.DL
         }
         public static void InsertDataSP(List<(string, object)> args, string stpName)
         {
-            List<string> adjustedAttributes = new List<string>();
-            for (int i = 0; i < args.Count; i++)
-            {
-                (string, object) struc = args[i];
-                adjustedAttributes.Add("@" + struc.Item1 + " = " + Utils.NormalizeForQuery(struc.Item2));
-            }
-            if (adjustedAttributes.Count != 0)
-                Utils.ExecuteQuery($"EXEC  {stpName} {string.Join(',', adjustedAttributes)}");
+            if (args.Count == 0) return;
+            Utils.CloseReader();
+            var conn = Configuration.getInstance().getConnection();
+            using var cmd = new SqlCommand(stpName, conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            foreach (var (name, value) in args)
+                cmd.Parameters.AddWithValue("@" + name, value ?? DBNull.Value);
+            cmd.ExecuteNonQuery();
         }
+
         public static object InsertDataSPReturn(List<(string, object)> args, string stpName)
         {
-            List<string> adjustedAttributes = new List<string>();
-            for (int i = 0; i < args.Count; i++)
-            {
-                (string, object) struc = args[i];
-                adjustedAttributes.Add("@" + struc.Item1 + " = " + Utils.NormalizeForQuery(struc.Item2));
-            }
-            if (adjustedAttributes.Count != 0)
-                return Utils.ExecuteQueryScalar($"EXEC  {stpName} {string.Join(',', adjustedAttributes)}");
-            else
-                return null;
+            if (args.Count == 0) return null;
+            Utils.CloseReader();
+            var conn = Configuration.getInstance().getConnection();
+            using var cmd = new SqlCommand(stpName, conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+            foreach (var (name, value) in args)
+                cmd.Parameters.AddWithValue("@" + name, value ?? DBNull.Value);
+            return cmd.ExecuteScalar();
         }
         public static void BulkDataExecuteSP(string parameterName,string objectTypeName,string stpName,IEnumerable value)
         {
