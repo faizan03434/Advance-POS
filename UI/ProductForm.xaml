@@ -1,94 +1,218 @@
 <local:AbstractEntryForm x:Class="StationeryStoreManagementSystem.UI.ProductForm"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
              xmlns:Components="clr-namespace:StationeryStoreManagementSystem.UI.Components"
              xmlns:Controls="clr-namespace:StationeryStoreManagementSystem.UI.Controls"
-             mc:Ignorable="d" 
-             d:DesignHeight="1200" d:DesignWidth="800">
+             mc:Ignorable="d"
+             d:DesignHeight="1100" d:DesignWidth="860">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="60px"/>
+            <RowDefinition Height="60"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Components:TitleBlock x:Name="titleBlock" Title="Add Product" Grid.ColumnSpan="2" VerticalAlignment="Center"/>
-        <ScrollViewer x:Name="scrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
-            <Grid ScrollViewer.CanContentScroll="True">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <Controls:TextEntry IsRequired="True" x:Name="NameField" Grid.Row="0" Grid.Column="0" Text="{Binding Name}"  LabelText="Name" MaxLength="30"/>
-                <Controls:TextEntry IsRequired="True" x:Name="CodeField" Grid.Row="0" Grid.Column="1" Text="{Binding Code}"  LabelText="Code" MaxLength="5"/>
-                <Controls:TextEntry Grid.Row="2" Grid.Column="0" Text="{Binding ReorderThreshold}" PositiveNumbersOnly="True" LabelText="Reorder Threshold" MaxLength="10"/>
-                <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,14,10,0">
-                    <TextBlock Text="Expiry Date (optional)" FontSize="12" Foreground="#6B7280" Margin="10,0,0,4"/>
-                    <DatePicker x:Name="ExpiryDatePicker" Margin="10,0" Height="36"
-                                SelectedDateChanged="ExpiryDatePicker_Changed"
-                                SelectedDate="{Binding ExpiryDate, Mode=TwoWay}"/>
-                </StackPanel>
-                <Controls:ComboBoxEntry Grid.Row="1" Grid.Column="0" SelectedItem="{Binding Company}" x:Name="CompanyField" LabelText="Company"/>
-                        <Controls:ComboBoxEntry Grid.Row="1" Grid.Column="1" SelectedItem="{Binding Category}" x:Name="CategoryField" LabelText="Category"/>
-                </Grid>
-                <Grid Grid.Row="1" x:Name="SuppliersGrid">
-                    <Grid.RowDefinitions>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
 
-                        <DataGrid x:Name="SuppliersDataGrid" Height="300" Margin="80 20 80 0">
+        <Components:TitleBlock x:Name="titleBlock" Title="Add Product"
+                               Grid.ColumnSpan="2" VerticalAlignment="Center"/>
+
+        <ScrollViewer x:Name="scrollViewer" Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="30,16,30,20">
+
+                <!-- ══ SECTION 1 — Product Details ══════════════════════ -->
+                <Border Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="1"
+                        CornerRadius="6" Padding="16" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="Product Details"
+                                   FontSize="13" FontWeight="SemiBold"
+                                   Foreground="#111827" Margin="0,0,0,10"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <Controls:TextEntry x:Name="NameField"
+                                                IsRequired="True"
+                                                Grid.Row="0" Grid.Column="0"
+                                                Text="{Binding Name}"
+                                                LabelText="Product Name" MaxLength="30"/>
+                            <Controls:TextEntry x:Name="CodeField"
+                                                IsRequired="True"
+                                                Grid.Row="0" Grid.Column="1"
+                                                Text="{Binding Code}"
+                                                LabelText="Internal Code (5 chars)" MaxLength="5"/>
+                            <Controls:ComboBoxEntry x:Name="CompanyField"
+                                                    Grid.Row="1" Grid.Column="0"
+                                                    SelectedItem="{Binding Company}"
+                                                    LabelText="Company"/>
+                            <Controls:ComboBoxEntry x:Name="CategoryField"
+                                                    Grid.Row="1" Grid.Column="1"
+                                                    SelectedItem="{Binding Category}"
+                                                    LabelText="Category"/>
+                            <Controls:TextEntry Grid.Row="2" Grid.Column="0"
+                                                Text="{Binding ReorderThreshold}"
+                                                PositiveNumbersOnly="True"
+                                                LabelText="Reorder Threshold (low stock alert)"
+                                                MaxLength="10"/>
+                            <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,14,10,0">
+                                <TextBlock Text="Expiry Date (optional)"
+                                           FontSize="12" Foreground="#6B7280" Margin="10,0,0,4"/>
+                                <DatePicker x:Name="ExpiryDatePicker" Margin="10,0" Height="36"
+                                            SelectedDateChanged="ExpiryDatePicker_Changed"
+                                            SelectedDate="{Binding ExpiryDate, Mode=TwoWay}"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ══ SECTION 2 — Supplier, Price & Stock ══════════════ -->
+                <Border Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="1"
+                        CornerRadius="6" Padding="16" Margin="0,0,0,14">
+                    <StackPanel>
+                        <TextBlock Text="Supplier, Price &amp; Stock"
+                                   FontSize="13" FontWeight="SemiBold"
+                                   Foreground="#111827" Margin="0,0,0,10"/>
+
+                        <!-- Selected suppliers table -->
+                        <TextBlock Text="Selected Suppliers:"
+                                   FontSize="11" Foreground="#6B7280" Margin="0,0,0,4"/>
+                        <DataGrid x:Name="SuppliersDataGrid"
+                                  Height="170" Margin="0,0,0,8"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  SelectionMode="Single">
                             <DataGrid.Columns>
-                                <DataGridTemplateColumn x:Name="EditColumn" Visibility="Collapsed">
+                                <!-- Action buttons — Edit mode shows Edit Stock too -->
+                                <DataGridTemplateColumn Header="Actions" Width="200">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <Button x:Name="EditStockButton" Margin="0 0 2px 0" Width="90px" FontSize="14" Click="EditStockButton_Click">Edit Stock</Button>
-                                                <Button x:Name="EditPriceButton" Margin="0 0 2px 0" Width="90px" FontSize="14" Click="EditPriceButton_Click">Edit Price</Button>
-                                                <Button x:Name="DeleteButton" Margin="0 0 2px 0" Width="70px" FontSize="14" Click="DeleteButton_Click">Remove</Button>
+                                                <Button x:Name="EditStockButton"
+                                                        Content="Stock" Width="60"
+                                                        FontSize="11" Margin="2,1"
+                                                        Visibility="{Binding Tag,
+                                                            RelativeSource={RelativeSource AncestorType=DataGrid},
+                                                            Converter={x:Static local:ProductForm.EditVisConverter}}"
+                                                        Click="EditStockButton_Click"/>
+                                                <Button Content="Set Price" Width="70"
+                                                        FontSize="11" Margin="2,1"
+                                                        Click="SetPriceBtn_Click"/>
+                                                <Button Content="Remove" Width="60"
+                                                        FontSize="11" Margin="2,1"
+                                                        Click="DeleteButton_Click"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTemplateColumn x:Name="AddColumn">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <Button x:Name="EditPriceButton" Margin="0 0 2px 0" Width="90px" FontSize="14" Click="EditPriceButton_Click">Edit Price</Button>
-                                                <Button x:Name="DeleteButton" Margin="0 0 2px 0" Width="70px" FontSize="14" Click="DeleteButton_Click">Remove</Button>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-
                             </DataGrid.Columns>
                         </DataGrid>
-                        <Components:DataViewer Margin="50 -20 50 0" Height="400" Grid.Row="2" x:Name="suppliersDataHandler2"/>
+
+                        <!-- Inline price + initial stock entry panel -->
+                        <Border x:Name="PricePanel"
+                                Background="#FFFBEB" BorderBrush="#F59E0B"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="12" Margin="0,0,0,10"
+                                Visibility="Collapsed">
+                            <StackPanel>
+                                <TextBlock x:Name="PricePanelTitle"
+                                           Text="Set price for supplier"
+                                           FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#92400E" Margin="0,0,0,8"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Controls:TextEntry x:Name="PriceField"
+                                                        Grid.Column="0"
+                                                        LabelText="Cost Price"
+                                                        PositiveNumbersOnly="True"
+                                                        MaxLength="10"/>
+                                    <Controls:TextEntry x:Name="RetailPriceField"
+                                                        Grid.Column="1"
+                                                        LabelText="Retail Price"
+                                                        PositiveNumbersOnly="True"
+                                                        MaxLength="10"/>
+                                    <Controls:TextEntry x:Name="DiscountField"
+                                                        Grid.Column="2"
+                                                        LabelText="Discount"
+                                                        PositiveNumbersOnly="True"
+                                                        MaxLength="10"/>
+                                    <Controls:TextEntry x:Name="InitialQtyField"
+                                                        Grid.Column="3"
+                                                        LabelText="Initial Qty"
+                                                        PositiveNumbersOnly="True"
+                                                        MaxLength="6"/>
+                                    <Button x:Name="SavePriceBtn"
+                                            Grid.Column="4"
+                                            Content="✔ Save"
+                                            Width="70" Height="36"
+                                            Margin="8,14,0,0"
+                                            Background="#059669"
+                                            Foreground="White"
+                                            Click="SavePriceBtn_Click"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Available suppliers -->
+                        <TextBlock Text="Available Suppliers — click Select to add:"
+                                   FontSize="11" Foreground="#6B7280" Margin="0,4,0,4"/>
+                        <DataGrid x:Name="AvailableSuppliersGrid"
+                                  Height="180"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="Add" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Select" Width="60"
+                                                    FontSize="11" Margin="2,1"
+                                                    Click="SelectSupplierBtn_Click"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- ══ ACTION BUTTONS ════════════════════════════════════ -->
+                <Grid Margin="0,4,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="ConfirmButton" Grid.Column="0"
+                            Height="46" Width="120"
+                            HorizontalAlignment="Right" Margin="0,0,20,0"
+                            Content="Add Product"
+                            Click="ConfirmButton_Click"/>
+                    <Button Grid.Column="1"
+                            Height="46" Width="100"
+                            HorizontalAlignment="Left" Margin="20,0,0,0"
+                            Content="Cancel"
+                            Click="CancelButton_Click"/>
                 </Grid>
-                    <Grid Grid.Row="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Button x:Name="ConfirmButton" Grid.Column="0" Height="50" Width="100" HorizontalAlignment="Right" Margin="0 0 30 0" Content="Add" Click="ConfirmButton_Click"/>
-                        <Button Grid.Column="1" Height="50" Width="100" HorizontalAlignment="Left" Margin="30 0 0 0" Content="Cancel" Click="CancelButton_Click"/>
-                    </Grid>
-            </Grid>
-                </Grid>
+
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </local:AbstractEntryForm>
