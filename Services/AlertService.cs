@@ -54,8 +54,8 @@ namespace StationeryStoreManagementSystem.Services
             {
                 Utils.ExecuteQuery("DELETE FROM [dbo].[Notification] WHERE DATEDIFF(day, AddedOn, GETDATE()) > 30");
             }
-            catch { } 
-            
+            catch { }
+
             // Agar koi DB issue ho tou app crash na ho
 
             _timer.Interval = TimeSpan.FromMinutes(5);
@@ -68,7 +68,7 @@ namespace StationeryStoreManagementSystem.Services
 
         public static void Stop() => _timer.Stop();
 
-        
+
         public static async Task CheckAfterSaleAsync() => await CheckAlertsAsync();
 
         private static async Task CheckAlertsAsync()
@@ -129,16 +129,35 @@ namespace StationeryStoreManagementSystem.Services
             catch { }
         }
 
-        public static void AcknowledgeAlert(int productId, AlertItem.AlertType type)
+        public static void AcknowledgeAlert(int productId, AlertItem.AlertType type, string extraInfo = "Acknowledged")
         {
             var alert = _alerts.FirstOrDefault(a => a.ProductId == productId && a.Type == type);
             if (alert != null)
             {
                 alert.IsAcknowledged = true;
 
-                
-                SaveAlertToDatabase(alert, "Acknowledged");
-            };
+
+                SaveAlertToDatabase(alert, extraInfo);
+            }
+            AlertsUpdated?.Invoke(null, _alerts);
+        }
+
+        // YManual Discount ke liye banaya 
+        public static void MarkDiscountApplied(int productId, double discountAmount)
+        {
+            var alert = _alerts.FirstOrDefault(a => a.ProductId == productId && a.Type == AlertItem.AlertType.Expiring);
+            if (alert != null)
+            {
+                // 1. Alert ko memory mein update kiya
+                alert.DiscountApplied = true;
+                alert.IsAcknowledged = true;
+
+                // 2. Exact message banaya jo Bell Icon mein show hoga
+                string extraInfo = $"Applied manual discount of Rs. {discountAmount}";
+
+                // 3. Database mein permanent save kar diya
+                SaveAlertToDatabase(alert, extraInfo);
+            }
             AlertsUpdated?.Invoke(null, _alerts);
         }
 
@@ -195,27 +214,37 @@ namespace StationeryStoreManagementSystem.Services
         {
             try
             {
-               
+                //uses id of employe if not then automatically sets it to admin
                 int currentUserId = Utils.CurrentEmployee != null ? Utils.CurrentEmployee.Id : 101;
 
+                //String formatting 
                 string info = string.IsNullOrEmpty(extraInfo) ? "" : $" ({extraInfo})";
                 string content = $"[{alert.Title}] {alert.Message}{info}";
 
-                
+                // agar string 250 sy lamba hoo ga tu woh truncate hoo jai ga 
+                if (content.Length > 240)
+                {
+                    content = content.Substring(0, 240) + "...";
+                }
+
+
                 content = content.Replace("'", "''");
 
-               
                 string query = $@"
-            INSERT INTO [dbo].[Notification] ([UserId], [Content], [AddedOn], [AddedBy], [ViewedAt])
-            VALUES ({currentUserId}, '{content}', GETDATE(), {currentUserId}, GETDATE())";
+                INSERT INTO [dbo].[Notification] ([UserId], [Content], [AddedOn], [AddedBy], [ViewedAt])
+                VALUES ({currentUserId}, '{content}', GETDATE(), {currentUserId}, GETDATE())";
 
                 Utils.ExecuteQuery(query);
             }
-            catch { }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show("Notification save error: " + ex.Message);
+            }
         }
+
+        public class LowStockDto { public int ProductId; public string ProductName = ""; public string ProductCode = ""; public int CurrentStock; public int ReorderThreshold; }
+        public class ExpiringDto { public int ProductId; public string ProductName = ""; public string ProductCode = ""; public DateTime? ExpiryDate; public int DaysUntilExpiry; }
     }
 
-    // DTOs for DL queries
-    public class LowStockDto { public int ProductId; public string ProductName = ""; public string ProductCode = ""; public int CurrentStock; public int ReorderThreshold; }
-    public class ExpiringDto { public int ProductId; public string ProductName = ""; public string ProductCode = ""; public DateTime? ExpiryDate; public int DaysUntilExpiry; }
 }
