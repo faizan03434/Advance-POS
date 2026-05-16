@@ -142,6 +142,7 @@ namespace StationeryStoreManagementSystem.UI
             }).ToList();
             product.Save(!isEdit);
             ProductDL.SaveStockChanges(product,filteredChanges);
+            ProductDL.SavePrices(product);   // ← save prices to PriceLog
             NavigateCallingForm();
         }
 

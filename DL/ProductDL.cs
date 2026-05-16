@@ -1,12 +1,3 @@
-// =====================================================================
-// CHANGES IN THIS FILE vs original ProductDL.cs:
-// 1. GetProduct()         — reads ExternalBarcode column (args[3])
-// 2. GetProducts()        — reads ExternalBarcode column
-// 3. GetProductByExternalBarcode() — NEW method for ProcessOrder lookup
-// 4. Save()               — passes ExternalBarcode to stored procedure
-// 5. GenerateBarcodes()   — skips system barcode gen if ExternalBarcode set
-// =====================================================================
-
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.SqlClient.Server;
 using StationeryStoreManagementSystem.BL;
@@ -115,6 +106,18 @@ namespace StationeryStoreManagementSystem.DL
             args.Add(stocks);
             return new Product(args);
         }
+
+        // NEW: check if a product code is already taken
+        public static bool IsCodeTaken(string code)
+        {
+            SqlDataReader reader = Utils.ReadData(
+                "SELECT COUNT(*) FROM Product WHERE Code='" + code.Replace("'", "''") + "' AND IsDiscontinued=0");
+            if (!reader.Read()) return false;
+            int count = reader.GetInt32(0);
+            reader.Close();
+            return count > 0;
+        }
+
         // REPLACE existing GetSupplierProducts in DL/ProductDL.cs with this.
         // Only change: ExternalBarcode added to SELECT (column index 3).
         // All other logic is exactly the same as your original.
@@ -202,6 +205,43 @@ namespace StationeryStoreManagementSystem.DL
             DataHandler.BulkDataExecuteSP("StockChanges", "udtt_StockChanges", "stpInsertStockChanges", items);
         }
 
+        // Save prices to PriceLog via stpInsertProductSupplierPrice
+        // Called after product.Save() so product.Id is valid
+        public static void SavePrices(Product product)
+        {
+            if (product.Stocks == null || product.Stocks.Count == 0) return;
+
+            SqlMetaData[] sqlMetas = new SqlMetaData[]
+            {
+                new SqlMetaData("ProductId",   SqlDbType.Int),
+                new SqlMetaData("SupplierId",  SqlDbType.Int),
+                new SqlMetaData("Price",       SqlDbType.Money),
+                new SqlMetaData("RetailPrice", SqlDbType.Money),
+                new SqlMetaData("DiscountAmount", SqlDbType.Money),
+            };
+
+            var items = product.Stocks
+                .Where(s => s.Supplier != null && s.RetailPrice > 0)
+                .Select(s =>
+                {
+                    SqlDataRecord record = new SqlDataRecord(sqlMetas);
+                    record.SetInt32(0, product.Id);
+                    record.SetInt32(1, s.Supplier.Id);
+                    record.SetDecimal(2, (decimal)s.Price);
+                    record.SetDecimal(3, (decimal)s.RetailPrice);
+                    record.SetDecimal(4, (decimal)s.DiscountAmount);
+                    return record;
+                }).ToList();
+
+            if (items.Count == 0) return;
+
+            DataHandler.BulkDataExecuteSP(
+                "ProductSupplierPrice",
+                "udtt_ProductSupplierPrice",
+                "stpInsertProductSupplierPrice",
+                items);
+        }
+
         public static void GenerateBarcodes()
         {
             List<Product> products = GetProducts();
@@ -228,19 +268,24 @@ namespace StationeryStoreManagementSystem.DL
 
         public static void Save(Product product, bool isAdd = false)
         {
-            // CHANGED: added ExternalBarcode parameter
             List<(string, object)> args = new List<(string, object)>
             {
                 ("Name",             product.Name),
                 ("Code",             product.Code),
-                ("CompanyId",        product.Company?.Id ?? (object)DBNull.Value),
-                ("ReorderThreshold", product.ReorderThreshold ?? (object)DBNull.Value),
-                ("CategoryId",       product.Category?.Id ?? (object)DBNull.Value),
-                ("ExpiryDate",       product.ExpiryDate.HasValue ? (object)product.ExpiryDate.Value.ToString("yyyy-MM-dd") : DBNull.Value),
+                ("CompanyId",        product.Company?.Id        ?? (object)DBNull.Value),
+                ("ReorderThreshold", product.ReorderThreshold   ?? (object)DBNull.Value),
+                ("CategoryId",       product.Category?.Id       ?? (object)DBNull.Value),
+                ("ExpiryDate",       product.ExpiryDate.HasValue ? (object)product.ExpiryDate.Value : DBNull.Value),
                 ("ExternalBarcode",  string.IsNullOrWhiteSpace(product.ExternalBarcode) ? (object)DBNull.Value : product.ExternalBarcode)
             };
             if (isAdd)
-                DataHandler.InsertDataSP(args, "stpInsertProduct");
+            {
+                // SP returns SCOPE_IDENTITY() â€” capture it so product.Id is valid
+                // for any FK-dependent inserts (SupplierStock, PriceLog) that follow
+                object newId = DataHandler.InsertDataSPReturn(args, "stpInsertProduct");
+                if (newId != null && newId != DBNull.Value)
+                    product.Id = Convert.ToInt32(newId);
+            }
             else
             {
                 args.Add(("Id", product.Id));
