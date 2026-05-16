@@ -3,153 +3,288 @@ using StationeryStoreManagementSystem.DL;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace StationeryStoreManagementSystem.UI
 {
-    /// <summary>
-    /// Interaction logic for ProductForm.xaml
-    /// </summary>
+    // ── Converter: show "Stock" button only in Edit mode ────────────────
+    public class EditVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type t, object p, CultureInfo c)
+            => (value is bool b && b) ? Visibility.Visible : Visibility.Collapsed;
+        public object ConvertBack(object v, Type t, object p, CultureInfo c)
+            => throw new NotImplementedException();
+    }
+
     public partial class ProductForm : AbstractEntryForm, IValidationFields
     {
+        // ── Static converter instance referenced from XAML ───────────────
+        public static readonly EditVisibilityConverter EditVisConverter
+            = new EditVisibilityConverter();
+
+        // ── State ────────────────────────────────────────────────────────
         public Product product;
-        public List<(int, int, string)> stockChanges;
-        private bool isEdit = false;
-        public ProductForm(ManageEntity callingInstance, int id = -1) : base(callingInstance)
+        private bool _isEdit = false;
+
+        // Two DataTables backing the two grids
+        private DataTable _selectedTable;
+        private DataTable _availableTable;
+
+        // Which row in _selectedTable is being priced right now
+        private int _pricingRowIndex = -1;
+
+        // In-memory price + qty store: supplierId → (cost, retail, discount, qty)
+        private readonly Dictionary<int, (double cost, double retail, double discount, int qty)>
+            _prices = new Dictionary<int, (double, double, double, int)>();
+
+        // ── Constructor ──────────────────────────────────────────────────
+        public ProductForm(ManageEntity callingInstance, int id = -1)
+            : base(callingInstance)
         {
             InitializeComponent();
-            List<Company> companies = CompanyDL.GetCompanies();
-            List<Category> categories = CategoryDL.GetCategories();
-            CompanyField.ItemSource = companies;
+
+            // Mark the DataGrid tag so the converter knows edit vs add mode
+            SuppliersDataGrid.Tag = (id != -1);
+
+            // Dropdowns
+            var companies  = CompanyDL.GetCompanies();
+            var categories = CategoryDL.GetCategories();
+            CompanyField.ItemSource      = companies;
             CompanyField.DisplayPathName = "Name";
-            CategoryField.ItemSource = categories;
+            CategoryField.ItemSource      = categories;
             CategoryField.DisplayPathName = "Name";
-            List<(string, string)> bindings = new List<(string, string)> {
-                ("Name","Name"),
-                ("Contact","Contact"),
-                ("Email","Email"),
-                ("Street Address","StreetAddress"),
-                ("Town","Town"),
-                ("City","City"),
-                ("Country","Country"),
-                ("Postal Code","PostalCode")};
-            if (GlobalSettings.DisplayIds == true)
-                bindings.Insert(0, ("Id", "Id"));
-            List<string> searchAttributes = new List<string>() { "Name" };
-            suppliersDataHandler2.SearchAttributes = searchAttributes;
-            suppliersDataHandler2.IsSelect = true;
-            suppliersDataHandler2.SetBindings(bindings);
-            DataTable table = SupplierDL.GetSuppliersView();
-            DataTable table1 = table.Clone();
-            suppliersDataHandler2.ItemSource = table.DefaultView;
-            suppliersDataHandler2.SelectButtonClicked += SuppliersDataHandler2_SelectButtonClicked;
+
+            // Load all suppliers
+            DataTable allSuppliers = SupplierDL.GetSuppliersView();
+
             if (id != -1)
             {
-                titleBlock.Text = "Edit Product";
-                ConfirmButton.Content = "Update";
+                // ── EDIT mode ────────────────────────────────────────────
+                _isEdit = true;
+                titleBlock.Text        = "Edit Product";
+                ConfirmButton.Content  = "Update Product";
+
                 product = ProductDL.GetProduct(id);
-                if (product.Company != null)
-                    product.Company = companies.Find(x => x.Id == product.Company.Id);
-                if (product.Category != null)
-                    product.Category = categories.Find(x => x.Id == product.Category.Id);
-                List<int> initialSupplierIds = product.Suppliers.Select(x => x.Id).ToList();
-                List<int> indexes = new List<int>();
-                for (int i = 0; i < table.Rows.Count; i++)
+                if (product.Company  != null) product.Company  = companies.Find(x => x.Id == product.Company.Id);
+                if (product.Category != null) product.Category = categories.Find(x => x.Id == product.Category.Id);
+
+                // Split suppliers: already assigned vs still available
+                var assignedIds = product.Suppliers.Select(s => s.Id).ToHashSet();
+
+                _selectedTable  = allSuppliers.Clone();
+                _availableTable = allSuppliers.Clone();
+
+                foreach (DataRow row in allSuppliers.Rows)
                 {
-                    if (initialSupplierIds.Exists(x => x == (int)table.Rows[i].ItemArray[0]))
+                    int sid = (int)row[0];
+                    if (assignedIds.Contains(sid))
+                        _selectedTable.Rows.Add(row.ItemArray);
+                    else
+                        _availableTable.Rows.Add(row.ItemArray);
+                }
+
+                // Pre-fill _prices from existing stocks
+                if (product.Stocks != null)
+                {
+                    foreach (var s in product.Stocks)
                     {
-                        table1.Rows.Add(table.Rows[i].ItemArray);
-                        indexes.Add(i);
+                        if (s.Supplier != null)
+                            _prices[s.Supplier.Id] = (s.Price, s.RetailPrice, s.DiscountAmount, s.Quantity);
                     }
                 }
-                indexes.Reverse();
-                foreach (int index in indexes)
-                    table.Rows.RemoveAt(index);
-                EditColumn.Visibility = Visibility.Visible;
-                AddColumn.Visibility = Visibility.Collapsed;
-                isEdit = true;
             }
             else
-                product = new Product();
-            if (product.Stocks == null)
-                product.Stocks = new List<Stock>();
-            stockChanges = new List<(int, int, string)>();
-            DataContext = product;
-
-
-
-            List<(string, string)> bindings2 = new List<(string, string)> {
-                ("Name","Name"),
-                ("Contact","Contact"),
-                ("Email","Email"),
-                ("Street Address","StreetAddress"),
-                ("Town","Town"),
-                ("City","City"),
-                ("Country","Country"),
-                ("Postal Code","PostalCode")};
-            for (int i = bindings.Count - 1; i >= 0; i--)
             {
-                DataGridTextColumn column = new DataGridTextColumn();
-                column.Header = bindings2[i].Item1;
-                column.Binding = new System.Windows.Data.Binding(bindings2[i].Item2);
-                column.IsReadOnly = true;
-                SuppliersDataGrid.Columns.Insert(0, column);
+                // ── ADD mode ─────────────────────────────────────────────
+                product         = new Product();
+                _selectedTable  = allSuppliers.Clone();   // empty
+                _availableTable = allSuppliers.Copy();    // all suppliers
             }
-            SuppliersDataGrid.AutoGenerateColumns = false;
-            SuppliersDataGrid.ItemsSource = new List<Product>();
-            SuppliersDataGrid.CanUserAddRows = false;
-            SuppliersDataGrid.ItemsSource = table1.DefaultView;
-        }
-        private void SuppliersDataHandler2_SelectButtonClicked(DataGrid dataGrid, int selectedIndex)
-        {
-            DataRow dataRow = ((DataRowView)dataGrid.SelectedItem).Row;
-            ((DataView)SuppliersDataGrid.ItemsSource).Table.Rows.Add(dataRow.ItemArray);
-            ((DataView)suppliersDataHandler2.ItemSource).Table.Rows.Remove(dataRow);
-        }
-        private void ConfirmButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (HasValidationErrors())
-                return;
-            List<Supplier> suppliers = new List<Supplier>();
-            var filteredChanges = new List<(int, int, string)>();
-            var rows = ((DataView)SuppliersDataGrid.ItemsSource).Table.Rows;
-            foreach (DataRow row in rows)
+
+            if (product.Stocks == null) product.Stocks = new List<Stock>();
+
+            // ── Build price display columns on _selectedTable ────────────
+            _selectedTable.Columns.Add("Cost Price",   typeof(string));
+            _selectedTable.Columns.Add("Retail Price", typeof(string));
+            _selectedTable.Columns.Add("Discount",     typeof(string));
+            _selectedTable.Columns.Add("Qty",          typeof(string));
+
+            // Refresh price display for pre-filled rows (edit mode)
+            foreach (DataRow row in _selectedTable.Rows)
             {
-                suppliers.Add(new Supplier((int)row.ItemArray[0]));
-                var stocksSupplier = stockChanges.Where(x => x.Item1 == (int)row.ItemArray[0]);
-                foreach(var item in stocksSupplier)
+                int sid = (int)row[0];
+                if (_prices.TryGetValue(sid, out var p))
                 {
-                    filteredChanges.Add(item);
+                    row["Cost Price"]   = p.cost.ToString("F2");
+                    row["Retail Price"] = p.retail.ToString("F2");
+                    row["Discount"]     = p.discount.ToString("F2");
+                    row["Qty"]          = p.qty.ToString();
+                }
+                else
+                {
+                    row["Cost Price"] = row["Retail Price"] = row["Discount"] = row["Qty"] = "—";
                 }
             }
-            product.Suppliers = suppliers;
-            product.Stocks = product.Stocks==null? null:product.Stocks.Where(x =>
+
+            // ── SuppliersDataGrid columns ────────────────────────────────
+            AddTextCols(SuppliersDataGrid,
+                new[] { "Name", "Cost Price", "Retail Price", "Discount", "Qty" },
+                new[] { "Name", "Cost Price", "Retail Price", "Discount", "Qty" });
+            SuppliersDataGrid.ItemsSource = _selectedTable.DefaultView;
+
+            // ── AvailableSuppliersGrid columns ───────────────────────────
+            AddTextCols(AvailableSuppliersGrid,
+                new[] { "Name", "Contact", "Email" },
+                new[] { "Name", "Contact", "Email" });
+            AvailableSuppliersGrid.ItemsSource = _availableTable.DefaultView;
+
+            DataContext = product;
+        }
+
+        private static void AddTextCols(DataGrid dg, string[] headers, string[] bindings)
+        {
+            for (int i = 0; i < headers.Length; i++)
+                dg.Columns.Add(new DataGridTextColumn
+                {
+                    Header     = headers[i],
+                    Binding    = new System.Windows.Data.Binding(bindings[i]),
+                    IsReadOnly = true,
+                    Width      = new DataGridLength(1, DataGridLengthUnitType.Star)
+                });
+        }
+
+        // ── Select supplier ──────────────────────────────────────────────
+        private void SelectSupplierBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (AvailableSuppliersGrid.SelectedItem is not DataRowView drv) return;
+            DataRow src = drv.Row;
+
+            DataRow newRow = _selectedTable.NewRow();
+            for (int i = 0; i < src.Table.Columns.Count; i++)
+                newRow[i] = src[i];
+            newRow["Cost Price"] = newRow["Retail Price"] = newRow["Discount"] = newRow["Qty"] = "—";
+            _selectedTable.Rows.Add(newRow);
+            _availableTable.Rows.Remove(src);
+        }
+
+        // ── Remove supplier ──────────────────────────────────────────────
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (SuppliersDataGrid.SelectedItem is not DataRowView drv) return;
+            DataRow row = drv.Row;
+
+            DataRow back = _availableTable.NewRow();
+            for (int i = 0; i < _availableTable.Columns.Count; i++)
+                back[i] = row[i];
+            _availableTable.Rows.Add(back);
+
+            _prices.Remove((int)row[0]);
+            _selectedTable.Rows.Remove(row);
+            PricePanel.Visibility = Visibility.Collapsed;
+            _pricingRowIndex = -1;
+        }
+
+        // ── Set Price button ─────────────────────────────────────────────
+        private void SetPriceBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (SuppliersDataGrid.SelectedItem is not DataRowView drv) return;
+            _pricingRowIndex = _selectedTable.Rows.IndexOf(drv.Row);
+
+            PricePanelTitle.Text = $"Set price for: {drv.Row["Name"]}";
+
+            int suppId = (int)drv.Row[0];
+            if (_prices.TryGetValue(suppId, out var ex))
             {
-                if (x.Supplier == null) return false;
-                return suppliers.Select(y => y.Id)
-            .Contains(x.Supplier.Id);
-            }).ToList();
-            product.Save(!isEdit);
-            ProductDL.SaveStockChanges(product,filteredChanges);
-            ProductDL.SavePrices(product);   // ← save prices to PriceLog
+                PriceField.TextBoxText.Text       = ex.cost.ToString("F2");
+                RetailPriceField.TextBoxText.Text = ex.retail.ToString("F2");
+                DiscountField.TextBoxText.Text    = ex.discount.ToString("F2");
+                InitialQtyField.TextBoxText.Text  = ex.qty.ToString();
+            }
+            else
+            {
+                PriceField.TextBoxText.Text       = "";
+                RetailPriceField.TextBoxText.Text = "";
+                DiscountField.TextBoxText.Text    = "0";
+                InitialQtyField.TextBoxText.Text  = "0";
+            }
+
+            PricePanel.Visibility = Visibility.Visible;
+            PriceField.TextBoxText.Focus();
+        }
+
+        // ── Save Price ───────────────────────────────────────────────────
+        private void SavePriceBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_pricingRowIndex < 0 || _pricingRowIndex >= _selectedTable.Rows.Count) return;
+
+            if (!double.TryParse(PriceField.TextBoxText.Text, out double cost) || cost <= 0)
+            { MessageBox.Show("Enter a valid Cost Price.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+            if (!double.TryParse(RetailPriceField.TextBoxText.Text, out double retail) || retail <= 0)
+            { MessageBox.Show("Enter a valid Retail Price.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+            double.TryParse(DiscountField.TextBoxText.Text, out double discount);
+            int.TryParse(InitialQtyField.TextBoxText.Text, out int qty);
+
+            DataRow row   = _selectedTable.Rows[_pricingRowIndex];
+            int suppId    = (int)row[0];
+            _prices[suppId] = (cost, retail, discount, qty);
+
+            row["Cost Price"]   = cost.ToString("F2");
+            row["Retail Price"] = retail.ToString("F2");
+            row["Discount"]     = discount.ToString("F2");
+            row["Qty"]          = qty.ToString();
+
+            PricePanel.Visibility = Visibility.Collapsed;
+            _pricingRowIndex = -1;
+        }
+
+        // ── Edit Stock (edit mode only) ──────────────────────────────────
+        private void EditStockButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (SuppliersDataGrid.SelectedItem is not DataRowView drv) return;
+            object[] arr = drv.Row.ItemArray;
+            ((Border)Parent).Child = new EditStockForm(this, product, (int)arr[0], (string)arr[1]);
+        }
+
+        // ── Confirm / Save ───────────────────────────────────────────────
+        private void ConfirmButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (HasValidationErrors()) return;
+
+            var suppliers = new List<Supplier>();
+            var stocks    = new List<Stock>();
+            var stockChanges = new List<(int suppId, int qty, string desc)>();
+
+            foreach (DataRow row in _selectedTable.Rows)
+            {
+                int suppId = (int)row[0];
+                suppliers.Add(new Supplier(suppId));
+
+                if (_prices.TryGetValue(suppId, out var p))
+                {
+                    var sup = new Supplier(suppId);
+                    stocks.Add(new Stock(sup, p.cost, p.retail, p.discount, p.qty));
+                    if (p.qty != 0)
+                        stockChanges.Add((suppId, p.qty, "Initial stock"));
+                }
+            }
+
+            product.Suppliers = suppliers;
+            product.Stocks    = stocks;
+
+            product.Save(!_isEdit);
+            ProductDL.SaveStockChanges(product, stockChanges);
+            ProductDL.SavePrices(product);
+
             NavigateCallingForm();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            NavigateCallingForm();
-        }
+            => NavigateCallingForm();
+
         public bool HasValidationErrors()
         {
             NameField.TextBoxText.GetBindingExpression(TextBox.TextProperty).UpdateSource();
@@ -159,29 +294,14 @@ namespace StationeryStoreManagementSystem.UI
                 || Validation.GetHasError(CodeField.TextBoxText);
         }
 
-        private void EditPriceButton_Click(object sender, RoutedEventArgs e)
-        {
-            object[] itemarray = ((DataRowView)SuppliersDataGrid.SelectedItem).Row.ItemArray;
-            ((Border)Parent).Child = new ProductSupplierPriceForm(this, product, (int)itemarray[0], (string)itemarray[1]);
-        }
-
-        private void EditStockButton_Click(object sender, RoutedEventArgs e)
-        {
-            object[] itemarray = ((DataRowView)SuppliersDataGrid.SelectedItem).Row.ItemArray;
-            ((Border)Parent).Child = new EditStockForm(this, product, (int)itemarray[0], (string)itemarray[1]);
-        }
-
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
-        {
-            DataRow dataRow = ((DataRowView)SuppliersDataGrid.SelectedItem).Row;
-            ((DataView)suppliersDataHandler2.ItemSource).Table.Rows.Add(dataRow.ItemArray);
-            ((DataView)SuppliersDataGrid.ItemsSource).Table.Rows.Remove(dataRow);
-        }
-
         private void ExpiryDatePicker_Changed(object sender, SelectionChangedEventArgs e)
         {
             if (product != null && ExpiryDatePicker.SelectedDate.HasValue)
                 product.ExpiryDate = ExpiryDatePicker.SelectedDate.Value;
         }
+
+        // ── Legacy compatibility — EditStockForm writes here ────────────
+        // Keep this public list so EditStockForm (edit mode) still works
+        public List<(int, int, string)> stockChanges { get; } = new List<(int, int, string)>();
     }
 }
