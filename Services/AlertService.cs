@@ -49,16 +49,26 @@ namespace StationeryStoreManagementSystem.Services
 
         public static void Start()
         {
+            //Application start hote hi 30 din purane notifications ko DB se permanently delete kar do
+            try
+            {
+                Utils.ExecuteQuery("DELETE FROM [dbo].[Notification] WHERE DATEDIFF(day, AddedOn, GETDATE()) > 30");
+            }
+            catch { } 
+            
+            // Agar koi DB issue ho tou app crash na ho
+
             _timer.Interval = TimeSpan.FromMinutes(5);
             _timer.Tick += async (s, e) => await CheckAlertsAsync();
             _timer.Start();
+
             // Run immediately on startup
             Task.Run(async () => await CheckAlertsAsync());
         }
 
         public static void Stop() => _timer.Stop();
 
-        // Called after every order to check stock immediately
+        
         public static async Task CheckAfterSaleAsync() => await CheckAlertsAsync();
 
         private static async Task CheckAlertsAsync()
@@ -122,7 +132,13 @@ namespace StationeryStoreManagementSystem.Services
         public static void AcknowledgeAlert(int productId, AlertItem.AlertType type)
         {
             var alert = _alerts.FirstOrDefault(a => a.ProductId == productId && a.Type == type);
-            if (alert != null) alert.IsAcknowledged = true;
+            if (alert != null)
+            {
+                alert.IsAcknowledged = true;
+
+                
+                SaveAlertToDatabase(alert, "Acknowledged");
+            };
             AlertsUpdated?.Invoke(null, _alerts);
         }
 
@@ -130,7 +146,14 @@ namespace StationeryStoreManagementSystem.Services
         {
             await Task.Run(() => ProductDL.ApplyExpiryDiscount(productId, discountPercent));
             var alert = _alerts.FirstOrDefault(a => a.ProductId == productId && a.Type == AlertItem.AlertType.Expiring);
-            if (alert != null) { alert.DiscountApplied = true; alert.IsAcknowledged = true; }
+            if (alert != null)
+            {
+                alert.DiscountApplied = true;
+                alert.IsAcknowledged = true;
+
+                // NYI LINE: Discount apply hone ka record bhi Bell Icon ke liye save kar do
+                SaveAlertToDatabase(alert, $"Applied {discountPercent}% Discount");
+            }
             AlertsUpdated?.Invoke(null, _alerts);
         }
 
@@ -162,6 +185,31 @@ namespace StationeryStoreManagementSystem.Services
                     }
                     catch { }
                 });
+            }
+            catch { }
+        }
+
+
+        // Yeh method alert ko SQL Database ki Notification table mein save karega
+        private static void SaveAlertToDatabase(AlertItem alert, string extraInfo = "")
+        {
+            try
+            {
+               
+                int currentUserId = Utils.CurrentEmployee != null ? Utils.CurrentEmployee.Id : 101;
+
+                string info = string.IsNullOrEmpty(extraInfo) ? "" : $" ({extraInfo})";
+                string content = $"[{alert.Title}] {alert.Message}{info}";
+
+                
+                content = content.Replace("'", "''");
+
+               
+                string query = $@"
+            INSERT INTO [dbo].[Notification] ([UserId], [Content], [AddedOn], [AddedBy], [ViewedAt])
+            VALUES ({currentUserId}, '{content}', GETDATE(), {currentUserId}, GETDATE())";
+
+                Utils.ExecuteQuery(query);
             }
             catch { }
         }

@@ -15,6 +15,8 @@ namespace StationeryStoreManagementSystem.BL
         public Employee? Receiver { get; set; }
         public string? Timestamp { get; set; }
 
+        public bool IsViewed { get; set; }
+
         public List<object> InitialArgs;
         public Notification(string? Content = null, Employee? receiver = null)
         {

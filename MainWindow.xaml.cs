@@ -220,7 +220,7 @@ namespace StationeryStoreManagementSystem
                 bindings.Insert(0, ("Id", "Id"));
             Content.Child = new UI.ManageEntity("Manage Notifications",
                                                 typeof(Notification).Name,
-                                                NotificationDL.GetNotifications_View,
+                                                NotificationDL.GetNotificationHistory,
                                                 bindings,
                                                 new List<string> { "From" },
                                                 typeof(NotificationForm),

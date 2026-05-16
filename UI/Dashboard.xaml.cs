@@ -51,7 +51,7 @@ namespace StationeryStoreManagementSystem.UI
                 LoadKpis();
                 AdminChart();
                 LoadCategoryDonut();
-                LoadAlerts(AlertService.CurrentAlerts.ToList());
+                LoadAlerts(AlertService.CurrentAlerts.Where(a => !a.IsAcknowledged).ToList());
             }
             else if (Utils.CurrentEmployee is Cashier)
             {
@@ -323,12 +323,18 @@ namespace StationeryStoreManagementSystem.UI
 
         private void OnAlertsUpdated(object? sender, List<AlertItem> alerts)
         {
-            Dispatcher.Invoke(() => LoadAlerts(alerts));
+
+            var activeAlerts = alerts.Where(a => !a.IsAcknowledged).ToList();
+            Dispatcher.Invoke(() => LoadAlerts(activeAlerts));
         }
 
-        private void RefreshAlerts_Click(object sender, RoutedEventArgs e)
+        private async void RefreshAlerts_Click(object sender, RoutedEventArgs e)
         {
-            _ = AlertService.CheckAfterSaleAsync();
+            await AlertService.CheckAfterSaleAsync();
+
+            var activeAlerts = AlertService.CurrentAlerts.Where(a => !a.IsAcknowledged).ToList();
+            LoadAlerts(activeAlerts);
+
             LoadKpis();
         }
 
@@ -340,7 +346,7 @@ namespace StationeryStoreManagementSystem.UI
             };
             if (GlobalSettings.DisplayIds) bindings.Insert(0, ("Id", "Id"));
             ((Border)Parent).Child = new ManageEntity("Manage Notifications", typeof(Notification).Name,
-                NotificationDL.GetNotifications_View, bindings, new List<string> { "From" },
+                NotificationDL.GetNotificationHistory, bindings, new List<string> { "From" },
                 typeof(NotificationForm), false, false, null, typeof(ViewNotification));
         }
 
