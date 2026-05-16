@@ -117,7 +117,7 @@
                 <Border Background="#F9FAFB" BorderBrush="#D1D5DB" BorderThickness="1"
                         CornerRadius="6" Padding="16" Margin="0,0,0,14">
                     <StackPanel>
-                        <TextBlock Text="Step 3 — Assign Supplier &amp; Set Price"
+                        <TextBlock Text="Step 3 — Assign Supplier &amp; Set Price &amp; Stock"
                                    FontSize="13" FontWeight="SemiBold"
                                    Foreground="#111827" Margin="0,0,0,10"/>
 
@@ -131,7 +131,6 @@
                                   GridLinesVisibility="Horizontal"
                                   HeadersVisibility="Column"
                                   SelectionMode="Single">
-                            <!-- Action buttons column — added in code-behind -->
                             <DataGrid.Columns>
                                 <DataGridTemplateColumn Header="Actions" Width="160">
                                     <DataGridTemplateColumn.CellTemplate>
@@ -150,7 +149,7 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <!-- Inline price entry panel — shown when "Set Price" clicked -->
+                        <!-- Inline price + initial stock entry panel — shown when "Set Price" clicked -->
                         <Border x:Name="PricePanel"
                                 Background="#FFFBEB" BorderBrush="#F59E0B"
                                 BorderThickness="1" CornerRadius="4"
@@ -163,6 +162,7 @@
                                            Foreground="#92400E" Margin="0,0,0,8"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
                                         <ColumnDefinition/>
                                         <ColumnDefinition/>
                                         <ColumnDefinition/>
@@ -183,8 +183,13 @@
                                                         LabelText="Discount Amount"
                                                         PositiveNumbersOnly="True"
                                                         MaxLength="10"/>
+                                    <Controls:TextEntry x:Name="InitialQtyField"
+                                                        Grid.Column="3"
+                                                        LabelText="Initial Qty"
+                                                        PositiveNumbersOnly="True"
+                                                        MaxLength="6"/>
                                     <Button x:Name="SavePriceBtn"
-                                            Grid.Column="3"
+                                            Grid.Column="4"
                                             Content="✔ Save"
                                             Width="70" Height="36"
                                             Margin="8,14,0,0"

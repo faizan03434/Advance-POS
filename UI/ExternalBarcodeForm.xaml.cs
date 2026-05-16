@@ -29,9 +29,9 @@ namespace StationeryStoreManagementSystem.UI
         // Track which row in _selectedTable is being priced right now
         private int _pricingRowIndex = -1;
 
-        // In-memory price store: supplierId → (cost, retail, discount)
-        private readonly Dictionary<int, (double cost, double retail, double discount)>
-            _prices = new Dictionary<int, (double, double, double)>();
+        // In-memory price store: supplierId → (cost, retail, discount, qty)
+        private readonly Dictionary<int, (double cost, double retail, double discount, int qty)>
+            _prices = new Dictionary<int, (double, double, double, int)>();
 
         private static readonly HttpClient _http = new HttpClient
         {
@@ -61,26 +61,22 @@ namespace StationeryStoreManagementSystem.UI
             _availableTable = allSuppliers.Copy();
 
             // ── Build text columns for SuppliersDataGrid (selected) ────
-            // Price columns first so they appear after the action column
-            string[] priceHeaders = { "Cost Price", "Retail Price", "Discount" };
-            string[] priceFields  = { "_cost",       "_retail",      "_discount" };
+            string[] priceHeaders = { "Cost Price", "Retail Price", "Discount", "Qty" };
             foreach (var h in priceHeaders)
-            {
                 _selectedTable.Columns.Add(h, typeof(string));
-            }
 
             AddTextColumns(SuppliersDataGrid,
                 new[] { "Name", "Contact" },
                 new[] { "Name", "Contact" });
             AddTextColumns(SuppliersDataGrid,
-                priceHeaders, priceHeaders);   // header == column name in DataTable
+                priceHeaders, priceHeaders);
 
             // ── Build text columns for AvailableSuppliersGrid ──────────
             AddTextColumns(AvailableSuppliersGrid,
                 new[] { "Name", "Contact", "Email", "City" },
                 new[] { "Name", "Contact", "Email", "City" });
 
-            SuppliersDataGrid.ItemsSource    = _selectedTable.DefaultView;
+            SuppliersDataGrid.ItemsSource = _selectedTable.DefaultView;
             AvailableSuppliersGrid.ItemsSource = _availableTable.DefaultView;
 
             DataContext = _product;
@@ -94,10 +90,10 @@ namespace StationeryStoreManagementSystem.UI
             {
                 dg.Columns.Add(new DataGridTextColumn
                 {
-                    Header    = headers[i],
-                    Binding   = new System.Windows.Data.Binding(bindings[i]),
+                    Header = headers[i],
+                    Binding = new System.Windows.Data.Binding(bindings[i]),
                     IsReadOnly = true,
-                    Width     = new DataGridLength(1, DataGridLengthUnitType.Star)
+                    Width = new DataGridLength(1, DataGridLengthUnitType.Star)
                 });
             }
         }
@@ -110,13 +106,12 @@ namespace StationeryStoreManagementSystem.UI
 
             // Add to selected table (price columns start empty)
             DataRow newRow = _selectedTable.NewRow();
-            // Copy all original columns
             for (int i = 0; i < src.Table.Columns.Count; i++)
                 newRow[i] = src[i];
-            // Price columns default
-            newRow["Cost Price"]   = "—";
+            newRow["Cost Price"] = "—";
             newRow["Retail Price"] = "—";
-            newRow["Discount"]     = "—";
+            newRow["Discount"] = "—";
+            newRow["Qty"] = "—";
             _selectedTable.Rows.Add(newRow);
 
             // Remove from available
@@ -159,15 +154,17 @@ namespace StationeryStoreManagementSystem.UI
             int suppId = (int)drv.Row[0];
             if (_prices.TryGetValue(suppId, out var existing))
             {
-                PriceField.TextBoxText.Text       = existing.cost.ToString("F2");
+                PriceField.TextBoxText.Text = existing.cost.ToString("F2");
                 RetailPriceField.TextBoxText.Text = existing.retail.ToString("F2");
-                DiscountField.TextBoxText.Text    = existing.discount.ToString("F2");
+                DiscountField.TextBoxText.Text = existing.discount.ToString("F2");
+                InitialQtyField.TextBoxText.Text = existing.qty.ToString();
             }
             else
             {
-                PriceField.TextBoxText.Text       = "";
+                PriceField.TextBoxText.Text = "";
                 RetailPriceField.TextBoxText.Text = "";
-                DiscountField.TextBoxText.Text    = "0";
+                DiscountField.TextBoxText.Text = "0";
+                InitialQtyField.TextBoxText.Text = "0";
             }
 
             PricePanel.Visibility = Visibility.Visible;
@@ -193,17 +190,19 @@ namespace StationeryStoreManagementSystem.UI
                 return;
             }
             double.TryParse(DiscountField.TextBoxText.Text, out double discount);
+            int.TryParse(InitialQtyField.TextBoxText.Text, out int qty);
 
             DataRow row = _selectedTable.Rows[_pricingRowIndex];
-            int suppId  = (int)row[0];
+            int suppId = (int)row[0];
 
             // Store in dictionary
-            _prices[suppId] = (cost, retail, discount);
+            _prices[suppId] = (cost, retail, discount, qty);
 
             // Update display columns
-            row["Cost Price"]   = cost.ToString("F2");
+            row["Cost Price"] = cost.ToString("F2");
             row["Retail Price"] = retail.ToString("F2");
-            row["Discount"]     = discount.ToString("F2");
+            row["Discount"] = discount.ToString("F2");
+            row["Qty"] = qty.ToString();
 
             PricePanel.Visibility = Visibility.Collapsed;
             _pricingRowIndex = -1;
@@ -259,7 +258,7 @@ namespace StationeryStoreManagementSystem.UI
 
             SetLookupStatus("🔍  Looking up online...", "#3B82F6");
             LookupBarcodeBtn.IsEnabled = false;
-            ScanBarcodeBtn.IsEnabled   = false;
+            ScanBarcodeBtn.IsEnabled = false;
 
             try
             {
@@ -324,7 +323,7 @@ namespace StationeryStoreManagementSystem.UI
             finally
             {
                 LookupBarcodeBtn.IsEnabled = true;
-                ScanBarcodeBtn.IsEnabled   = true;
+                ScanBarcodeBtn.IsEnabled = true;
             }
         }
 
@@ -332,9 +331,9 @@ namespace StationeryStoreManagementSystem.UI
         {
             try
             {
-                string url  = $"https://world.openfoodfacts.org/api/v0/product/{barcode}.json";
+                string url = $"https://world.openfoodfacts.org/api/v0/product/{barcode}.json";
                 string json = await _http.GetStringAsync(url);
-                using JsonDocument doc  = JsonDocument.Parse(json);
+                using JsonDocument doc = JsonDocument.Parse(json);
                 JsonElement root = doc.RootElement;
                 if (!root.TryGetProperty("status", out JsonElement st) || st.GetInt32() != 1)
                     return null;
@@ -371,7 +370,8 @@ namespace StationeryStoreManagementSystem.UI
 
             // Build supplier + stock lists from selected table
             var suppliers = new List<Supplier>();
-            var stocks    = new List<Stock>();
+            var stocks = new List<Stock>();
+            var stockChanges = new List<(int, int, string)>();
 
             foreach (DataRow row in _selectedTable.Rows)
             {
@@ -381,12 +381,16 @@ namespace StationeryStoreManagementSystem.UI
                 if (_prices.TryGetValue(suppId, out var p))
                 {
                     var sup = new Supplier(suppId);
-                    stocks.Add(new Stock(sup, p.cost, p.retail, p.discount, 0));
+                    stocks.Add(new Stock(sup, p.cost, p.retail, p.discount, p.qty));
+
+                    // Only log if qty > 0
+                    if (p.qty > 0)
+                        stockChanges.Add((suppId, p.qty, "Initial stock"));
                 }
             }
 
             _product.Suppliers = suppliers;
-            _product.Stocks    = stocks;
+            _product.Stocks = stocks;
 
             // Save captured barcode image
             if (_capturedBarcodeImage != null &&
@@ -394,7 +398,7 @@ namespace StationeryStoreManagementSystem.UI
             {
                 try
                 {
-                    string dir  = "barcodes";
+                    string dir = "barcodes";
                     if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                     string path = Path.Combine(dir, $"{_product.ExternalBarcode}.png");
                     _capturedBarcodeImage.Save(path,
@@ -405,16 +409,11 @@ namespace StationeryStoreManagementSystem.UI
 
             _product.Save(isAdd: true);
 
-            // Save price logs for each supplier
-            if (stocks.Count > 0)
-            {
-                var changes = new List<(int, int, string)>();
-                foreach (var s in stocks)
-                    changes.Add((s.Supplier.Id, 0, "Initial stock"));
-                ProductDL.SaveStockChanges(_product, changes);
-            }
+            // Save stock changes with actual qty from _prices
+            if (stockChanges.Count > 0)
+                ProductDL.SaveStockChanges(_product, stockChanges);
 
-            ProductDL.SavePrices(_product);   // ← save prices to PriceLog
+            ProductDL.SavePrices(_product);
 
             NavigateCallingForm();
         }
@@ -449,7 +448,7 @@ namespace StationeryStoreManagementSystem.UI
             {
                 var writer = new BarcodeWriter
                 {
-                    Format  = BarcodeFormat.CODE_128,
+                    Format = BarcodeFormat.CODE_128,
                     Options = { Width = 300, Height = 55, Margin = 2 }
                 };
                 var bmp = writer.Write(value);
@@ -458,10 +457,10 @@ namespace StationeryStoreManagementSystem.UI
                 ms.Seek(0, SeekOrigin.Begin);
                 var bi = new BitmapImage();
                 bi.BeginInit();
-                bi.CacheOption  = BitmapCacheOption.OnLoad;
+                bi.CacheOption = BitmapCacheOption.OnLoad;
                 bi.StreamSource = ms;
                 bi.EndInit();
-                BarcodePreviewImage.Source     = bi;
+                BarcodePreviewImage.Source = bi;
                 BarcodePreviewImage.Visibility = Visibility.Visible;
             }
             catch { }
@@ -469,7 +468,7 @@ namespace StationeryStoreManagementSystem.UI
 
         private void SetLookupStatus(string msg, string hexColor)
         {
-            LookupStatusText.Text       = msg;
+            LookupStatusText.Text = msg;
             LookupStatusText.Foreground = new System.Windows.Media.SolidColorBrush(
                 (System.Windows.Media.Color)
                 System.Windows.Media.ColorConverter.ConvertFromString(hexColor));
@@ -533,7 +532,7 @@ namespace StationeryStoreManagementSystem.UI
             if (!ProductDL.IsCodeTaken(baseCode)) return baseCode;
             for (int i = 1; i <= 99; i++)
             {
-                string sfx       = i.ToString();
+                string sfx = i.ToString();
                 string candidate = baseCode.Substring(0, 5 - sfx.Length) + sfx;
                 if (!ProductDL.IsCodeTaken(candidate)) return candidate;
             }
@@ -548,8 +547,8 @@ namespace StationeryStoreManagementSystem.UI
 
         private class BarcodeProductInfo
         {
-            public string Name     { get; set; }
-            public string Brand    { get; set; }
+            public string Name { get; set; }
+            public string Brand { get; set; }
             public string Category { get; set; }
         }
     }
