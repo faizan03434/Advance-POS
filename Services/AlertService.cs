@@ -143,19 +143,17 @@ namespace StationeryStoreManagementSystem.Services
         }
 
         // YManual Discount ke liye banaya 
-        public static void MarkDiscountApplied(int productId, double discountAmount)
+        public static void MarkDiscountApplied(int productId, double discountPercent)
         {
             var alert = _alerts.FirstOrDefault(a => a.ProductId == productId && a.Type == AlertItem.AlertType.Expiring);
             if (alert != null)
             {
-                // 1. Alert ko memory mein update kiya
                 alert.DiscountApplied = true;
                 alert.IsAcknowledged = true;
 
-                // 2. Exact message banaya jo Bell Icon mein show hoga
-                string extraInfo = $"Applied manual discount of Rs. {discountAmount}";
+                // Message mein ab % ka nishaan aayega
+                string extraInfo = $"Applied manual discount of {discountPercent}%";
 
-                // 3. Database mein permanent save kar diya
                 SaveAlertToDatabase(alert, extraInfo);
             }
             AlertsUpdated?.Invoke(null, _alerts);

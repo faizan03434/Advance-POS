@@ -15,7 +15,16 @@ namespace StationeryStoreManagementSystem.DL
     {
         public static DataTable GetProducts_View()
         {
-            return DataHandler.FillDataTable(@"SELECT * FROM GetProducts_View");
+           
+            string query = @"
+        SELECT 
+            v.*, 
+            p.DefaultDiscountPercent AS [Discount (%)],
+            ISNULL((SELECT TOP 1 pl.DiscountAmount FROM PriceLog pl WHERE pl.ProductId = v.Id ORDER BY pl.AddedOn DESC), 0) AS [Discount (Rs)]
+        FROM GetProducts_View v
+        INNER JOIN Product p ON v.Id = p.Id";
+
+            return DataHandler.FillDataTable(query);
         }
 
         public static Product GetProduct(int id)
