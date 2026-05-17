@@ -25,7 +25,7 @@
             <TextBlock Text="Current Discount:" Foreground="#64748B" FontSize="12"/>
             <TextBlock x:Name="CurrentDiscountTxt" FontWeight="SemiBold" FontSize="14" Foreground="#1E293B" Margin="0,0,0,15"/>
 
-            <TextBlock Text="Enter New Discount (Rs):" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,5"/>
+            <TextBlock Text="Enter New Discount (%):" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,0,0,5"/>
             <TextBox x:Name="NewDiscountInput" FontSize="16" Padding="5" TextChanged="NewDiscountInput_TextChanged" Margin="0,0,0,10"/>
 
             <Border Background="#E2E8F0" Padding="10" CornerRadius="5" Margin="0,0,0,20">

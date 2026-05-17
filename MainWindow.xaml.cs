@@ -174,7 +174,9 @@ namespace StationeryStoreManagementSystem
                 ("Company","Company"),
                 ("Category","Category"),
                 ("No. Suppliers","[No. Suppliers]"),
-                ("Q.ty","Stock")
+                ("Q.ty","Stock"),
+                ("Discount (%)", "Discount (%)"),
+    ("Discount (Rs)", "Discount (Rs)")
              };
             if (GlobalSettings.DisplayIds == true)
                 bindings.Insert(0, ("Id", "Id"));

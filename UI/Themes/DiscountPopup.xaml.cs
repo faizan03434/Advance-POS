@@ -16,6 +16,7 @@ namespace StationeryStoreManagementSystem.UI
         public bool IsSuccess { get; private set; } = false;
         public double NewDiscount { get; private set; }
 
+        public double FinalDiscountPercent { get; private set; } // Nayi property percent ke liye
         public DiscountPopup(int productId, string productName)
         {
             InitializeComponent();
@@ -51,9 +52,11 @@ namespace StationeryStoreManagementSystem.UI
 
         private void NewDiscountInput_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (double.TryParse(NewDiscountInput.Text, out double newDiscount))
+            if (double.TryParse(NewDiscountInput.Text, out double percent))
             {
-                double finalPrice = _retailPrice - newDiscount;
+                // User ne Percentage daali exact Rs (amount) nikal liya
+                double discountAmount = _retailPrice * (percent / 100.0);
+                double finalPrice = _retailPrice - discountAmount;
 
                 if (finalPrice < _buyingPrice)
                 {
@@ -70,22 +73,28 @@ namespace StationeryStoreManagementSystem.UI
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
-            if (double.TryParse(NewDiscountInput.Text, out double newDiscount))
+            if (double.TryParse(NewDiscountInput.Text, out double percent))
             {
-                // Database update: Naya discount amount active PriceLog mein set ho jayega
+                double discountAmount = _retailPrice * (percent / 100.0);
+
+               
+                
                 string updateQuery = $@"
-                    UPDATE PriceLog 
-                    SET DiscountAmount = {newDiscount}
-                    WHERE ProductId = {_productId} AND AddedOn = (SELECT MAX(AddedOn) FROM PriceLog WHERE ProductId = {_productId})";
+            UPDATE PriceLog SET DiscountAmount = {discountAmount} 
+            WHERE ProductId = {_productId} AND AddedOn = (SELECT MAX(AddedOn) FROM PriceLog WHERE ProductId = {_productId});
+            
+            UPDATE Product SET DefaultDiscountPercent = {percent} 
+            WHERE Id = {_productId};";
 
                 Utils.ExecuteQuery(updateQuery);
-                NewDiscount = newDiscount;
+
+                FinalDiscountPercent = percent; // Percent save kar liya
                 IsSuccess = true;
                 this.Close();
             }
             else
             {
-                MessageBox.Show("Please enter a valid number for the discount.");
+                MessageBox.Show("Please enter a valid percentage number.");
             }
         }
 

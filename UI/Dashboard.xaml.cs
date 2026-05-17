@@ -1,3 +1,4 @@
+using Microsoft.Data.SqlClient;
 using StationeryStoreManagementSystem.BL;
 using StationeryStoreManagementSystem.DL;
 using StationeryStoreManagementSystem.Services;
@@ -5,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.Data.SqlClient;
 
 namespace StationeryStoreManagementSystem.UI
 {
@@ -308,13 +309,10 @@ namespace StationeryStoreManagementSystem.UI
                     popup.Owner = Window.GetWindow(this);
                     popup.ShowDialog();
 
-                    // Jaise hi Admin "Apply Discount" dabayega tou IsSuccess true ho jayega
                     if (popup.IsSuccess)
                     {
-                        // 1. Naya bulletproof method call kiya jo DB mein exact amount save karega
-                        AlertService.AcknowledgeAlert(capturedAlert.ProductId, capturedAlert.Type, $"Applied manual discount of Rs. {popup.NewDiscount}");
-
-                        // 2. Dashboard ko refresh kar do taake ye card screen se permanently hat jaye
+                        // popup.NewDiscount ki jagah ab popup.FinalDiscountPercent use hoga
+                        AlertService.MarkDiscountApplied(capturedAlert.ProductId, popup.FinalDiscountPercent);
                         RefreshAlerts_Click(null, null);
                     }
                 };
@@ -341,24 +339,37 @@ namespace StationeryStoreManagementSystem.UI
 
         private async void RefreshAlerts_Click(object sender, RoutedEventArgs e)
         {
+            //Button disable karein
+            var btn = sender as Button;
+            if (btn != null) btn.IsEnabled = false;
+
+           //clear old contnent
+            alertsContainer.Children.Clear();
+
+            // loading text dikhana chahte hain
+            alertsContainer.Children.Add(new TextBlock { Text = "Fetching latest data...", Foreground = new SolidColorBrush(Colors.Gray), Margin = new Thickness(5) });
+
+            // 3. Ek chota sa gap taake client ko screen refresh hoti hui nazar aaye (0.8 Seconds)
+            await Task.Delay(800);
+
+            //  Database se foran taaza alerts fetch 
             await AlertService.CheckAfterSaleAsync();
 
+            // Naya data UI par load 
             var activeAlerts = AlertService.CurrentAlerts.Where(a => !a.IsAcknowledged).ToList();
             LoadAlerts(activeAlerts);
-
             LoadKpis();
+
+            // 6. Button wapas on 
+            if (btn != null) btn.IsEnabled = true;
         }
 
         private void NotificationButton_Click(object sender, RoutedEventArgs e)
         {
-            var bindings = new List<(string, string)>
-            {
-                ("From","From"), ("IsViewed","IsViewed"), ("Notification","Notification")
-            };
-            if (GlobalSettings.DisplayIds) bindings.Insert(0, ("Id", "Id"));
-            ((Border)Parent).Child = new ManageEntity("Manage Notifications", typeof(Notification).Name,
-                NotificationDL.GetNotificationHistory, bindings, new List<string> { "From" },
-                typeof(NotificationForm), false, false, null, typeof(ViewNotification));
+           
+            NotificationWindow notiWindow = new NotificationWindow();
+            notiWindow.Owner = Window.GetWindow(this);
+            notiWindow.ShowDialog();
         }
 
         private void PreviewButton_Click(object sender, RoutedEventArgs e)
