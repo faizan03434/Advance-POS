@@ -22,7 +22,7 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="Dashboard" Foreground="White" FontSize="22" FontWeight="Bold"/>
-                            <TextBlock x:Name="todayDateText" Foreground="#90CAF9" FontSize="12" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="todayDateText" Foreground="#90CAF9" FontSize="13" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button x:Name="NotificationButton" Grid.Column="1" Width="44" Height="44"
                                 Click="NotificationButton_Click" Background="Transparent" BorderThickness="0" Cursor="Hand">
@@ -54,36 +54,36 @@
                     <Border Grid.Column="0" Background="White" CornerRadius="10" Margin="0,0,8,0" Padding="16,14">
                         <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
                         <StackPanel>
-                            <TextBlock Text="Today Revenue" FontSize="11" Foreground="#6B7280"/>
+                            <TextBlock Text="Today Revenue" FontSize="14" Foreground="#6B7280"/>
                             <TextBlock x:Name="kpiRevenue" Text="Rs. 0" FontSize="22" FontWeight="Bold" Foreground="#1565C0" Margin="0,4,0,0"/>
-                            <TextBlock Text="Total sales today" FontSize="10" Foreground="#9CA3AF"/>
+                            <TextBlock Text="Total sales today" FontSize="12" Foreground="#9CA3AF"/>
                         </StackPanel>
                     </Border>
 
                     <Border Grid.Column="1" Background="White" CornerRadius="10" Margin="4,0,4,0" Padding="16,14">
                         <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
                         <StackPanel>
-                            <TextBlock Text="Today Profit" FontSize="11" Foreground="#6B7280"/>
+                            <TextBlock Text="Today Profit" FontSize="14" Foreground="#6B7280"/>
                             <TextBlock x:Name="kpiProfit" Text="Rs. 0" FontSize="22" FontWeight="Bold" Foreground="#059669" Margin="0,4,0,0"/>
-                            <TextBlock Text="Net margin today" FontSize="10" Foreground="#9CA3AF"/>
+                            <TextBlock Text="Net margin today" FontSize="12" Foreground="#9CA3AF"/>
                         </StackPanel>
                     </Border>
 
                     <Border Grid.Column="2" Background="White" CornerRadius="10" Margin="4,0,4,0" Padding="16,14">
                         <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
                         <StackPanel>
-                            <TextBlock Text="Orders Today" FontSize="11" Foreground="#6B7280"/>
+                            <TextBlock Text="Orders Today" FontSize="14" Foreground="#6B7280"/>
                             <TextBlock x:Name="kpiOrders" Text="0" FontSize="22" FontWeight="Bold" Foreground="#7C3AED" Margin="0,4,0,0"/>
-                            <TextBlock Text="Transactions processed" FontSize="10" Foreground="#9CA3AF"/>
+                            <TextBlock Text="Transactions processed" FontSize="12" Foreground="#9CA3AF"/>
                         </StackPanel>
                     </Border>
 
                     <Border Grid.Column="3" Background="White" CornerRadius="10" Margin="8,0,0,0" Padding="16,14">
                         <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
                         <StackPanel>
-                            <TextBlock Text="Low Stock Items" FontSize="11" Foreground="#6B7280"/>
+                            <TextBlock Text="Low Stock Items" FontSize="14" Foreground="#6B7280"/>
                             <TextBlock x:Name="kpiLowStock" Text="0" FontSize="22" FontWeight="Bold" Foreground="#DC2626" Margin="0,4,0,0"/>
-                            <TextBlock Text="Need restocking" FontSize="10" Foreground="#9CA3AF"/>
+                            <TextBlock Text="Need restocking" FontSize="12" Foreground="#9CA3AF"/>
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -92,11 +92,11 @@
                 <Border x:Name="alertsPanel" Margin="20,16,20,0" Background="White" CornerRadius="10" Visibility="Collapsed">
                     <Border.Effect><DropShadowEffect BlurRadius="8" ShadowDepth="1" Opacity="0.08" Color="Black"/></Border.Effect>
                     <StackPanel>
-                        <Border Background="#807F7C" CornerRadius="10,10,0,0" Padding="16,12">
+                        <Border Background="#FCC6BB" CornerRadius="10,10,0,0" Padding="16,12">
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <TextBlock Text="⚠ Active Alerts" FontWeight="Bold" FontSize="18" Foreground="White"/>
-                                <Button Grid.Column="1" Content="Refresh" Background="#547BE8" Foreground="White" FontWeight="Medium"
+                                <TextBlock Text="⚠ Active Alerts" FontWeight="Bold" FontSize="18" Foreground="#F54927"/>
+                                <Button Grid.Column="1" Content="Refresh" Background="#4FBD66" Foreground="White" FontWeight="Medium"
                                         BorderThickness="0" Padding="20,8" Cursor="Hand" Click="RefreshAlerts_Click" FontSize="14">
                                     <Button.Style><Style TargetType="Button"><Setter Property="Template"><Setter.Value>
                                         <ControlTemplate TargetType="Button">
