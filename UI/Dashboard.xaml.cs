@@ -334,14 +334,9 @@ namespace StationeryStoreManagementSystem.UI
 
         private void NotificationButton_Click(object sender, RoutedEventArgs e)
         {
-            var bindings = new List<(string, string)>
-            {
-                ("From","From"), ("IsViewed","IsViewed"), ("Notification","Notification")
-            };
-            if (GlobalSettings.DisplayIds) bindings.Insert(0, ("Id", "Id"));
-            ((Border)Parent).Child = new ManageEntity("Manage Notifications", typeof(Notification).Name,
-                NotificationDL.GetNotifications_View, bindings, new List<string> { "From" },
-                typeof(NotificationForm), false, false, null, typeof(ViewNotification));
+            NotificationWindow win = new NotificationWindow();
+            win.Owner = Window.GetWindow(this);
+            win.ShowDialog();
         }
 
         private void PreviewButton_Click(object sender, RoutedEventArgs e)
