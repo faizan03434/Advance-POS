@@ -48,7 +48,8 @@ namespace StationeryStoreManagementSystem.DL
             N.Id, 
             E.FirstName + ' ' + E.LastName AS [From], 
             CASE WHEN N.ViewedAt IS NULL THEN 0 ELSE 1 END AS IsViewed, 
-            N.Content AS [Notification]
+            N.Content AS [Notification],
+            N.AddedOn
         FROM Notification N 
         JOIN [User] E ON N.AddedBy = E.Id
         WHERE N.UserId = {Utils.CurrentEmployee.Id} 

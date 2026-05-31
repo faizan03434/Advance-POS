@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <Platforms>AnyCPU</Platforms>
     <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
@@ -37,7 +37,10 @@
     <PackageReference Include="CrystalReports.Shared" Version="13.0.4003" />
     <PackageReference Include="DotNetProjects.WpfToolkit.DataVisualization" Version="6.1.94" />
     <PackageReference Include="JerryShaw.WPFMediaKit" Version="1.0.1" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc2" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
+    <PackageReference Include="Microsoft.ML" Version="3.0.1" />
+    <PackageReference Include="Microsoft.ML.TimeSeries" Version="3.0.1" />
     <PackageReference Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.12" />
   </ItemGroup>
 
