@@ -28,7 +28,27 @@ namespace StationeryStoreManagementSystem.UI
     {
         DispatcherTimer cameraTimer = new DispatcherTimer();
         DispatcherTimer ipWebcamTimer = new DispatcherTimer();
-        BarcodeReader codeReader = new BarcodeReader();
+        BarcodeReader codeReader = new BarcodeReader
+        {
+            AutoRotate = true,
+            TryInverted = true,
+            Options = new ZXing.Common.DecodingOptions
+            {
+                TryHarder = true,
+                PossibleFormats = new List<BarcodeFormat>
+                {
+                    BarcodeFormat.EAN_13,
+                    BarcodeFormat.EAN_8,
+                    BarcodeFormat.UPC_A,
+                    BarcodeFormat.UPC_E,
+                    BarcodeFormat.CODE_128,
+                    BarcodeFormat.CODE_39,
+                    BarcodeFormat.ITF,
+                    BarcodeFormat.QR_CODE,
+                },
+                PureBarcode = false,
+            }
+        };
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
         Order order;
         int invoiceNumber = -1;
@@ -92,7 +112,13 @@ namespace StationeryStoreManagementSystem.UI
         // Tab order: Product ID -> Qty -> Add -> Customer -> Received -> Confirm
         private void productIdField_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter) quantityField.Focus();
+            if (e.Key == Key.Enter)
+            {
+                if (string.IsNullOrWhiteSpace(productIdField.Text))
+                    receivedField.Focus(); // If empty, done scanning -> go to payment
+                else
+                    quantityField.Focus(); // If has text, go to quantity
+            }
         }
 
         private void quantityField_KeyUp(object sender, KeyEventArgs e)
@@ -100,7 +126,8 @@ namespace StationeryStoreManagementSystem.UI
             if (e.Key == Key.Enter)
             {
                 AddProductFromFields();
-                customerNameField.Focus();
+                // AddProductFromFields automatically returns focus to productIdField
+                // so you can immediately scan the next item!
             }
         }
 
@@ -133,7 +160,7 @@ namespace StationeryStoreManagementSystem.UI
                 if (result != null)
                 {
                     AddProductByBarcode(result.ToString());
-                    cooldown = 40;
+                    cooldown = 5; // 5 ticks * 300ms = 1.5 seconds cooldown
                 }
             }
             catch { }
@@ -163,7 +190,7 @@ namespace StationeryStoreManagementSystem.UI
                 if (result != null)
                 {
                     AddProductByBarcode(result.ToString());
-                    cooldown = 50;
+                    cooldown = 4; // 4 ticks * 400ms = 1.6 seconds cooldown
                 }
             }
             catch { }
