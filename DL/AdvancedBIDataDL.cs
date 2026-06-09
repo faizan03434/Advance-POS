@@ -84,7 +84,7 @@ namespace StationeryStoreManagementSystem.DL
                 CROSS JOIN TotalOrders t
                 JOIN Product p1 ON pp.ProductIdA = p1.Id
                 JOIN Product p2 ON pp.ProductIdB = p2.Id
-                WHERE CAST(pp.PairCount AS FLOAT) / NULLIF(t.TotalCount, 0) > 0.15
+                WHERE CAST(pp.PairCount AS FLOAT) / NULLIF(t.TotalCount, 0) > 0.03
                 ORDER BY CoOccurrenceRate DESC";
 
             return DataHandler.FillDataTable(query);

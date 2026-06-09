@@ -119,14 +119,32 @@ namespace StationeryStoreManagementSystem.UI
                 UpdateSalesChart(salesHistoryDt);
                 UpdateProductChart(productPerfDt);
 
-                // Update UI
-                MarketBasketGrid.ItemsSource = marketBasketDt.DefaultView;
+                // Update UI - Market Basket: bind as anonymous objects for DataGrid column binding
+                if (marketBasketDt.Rows.Count > 0)
+                {
+                    MarketBasketGrid.ItemsSource = marketBasketDt.Rows.Cast<DataRow>().Select(r => new
+                    {
+                        ProductA = r["ProductA"].ToString(),
+                        ProductB = r["ProductB"].ToString(),
+                        CoOccurrenceRate = Convert.ToDouble(r["CoOccurrenceRate"])
+                    }).ToList();
+                }
+                else
+                {
+                    MarketBasketGrid.ItemsSource = null;
+                }
+
                 AIBriefingText.Text = briefing;
 
-                AnomaliesList.ItemsSource = anomaliesDt.Rows.Cast<DataRow>().Select(r => new {
+                var anomalyRows = anomaliesDt.Rows.Cast<DataRow>().Select(r => new {
                     CashierName = r["CashierName"].ToString(),
-                    Message = $"Discount Rate: {Convert.ToDouble(r["CashierDiscountRate"]):P1} (Avg: {Convert.ToDouble(r["GlobalAvgDiscountRate"]):P1})"
-                });
+                    Message = $"Discount Rate: {Convert.ToDouble(r["CashierDiscountRate"]):P1} (Store Avg: {Convert.ToDouble(r["GlobalAvgDiscountRate"]):P1})"
+                }).ToList();
+
+                if (anomalyRows.Count > 0)
+                    AnomaliesList.ItemsSource = anomalyRows;
+                else
+                    AnomaliesList.ItemsSource = new[] { new { CashierName = "No anomalies detected", Message = "All cashiers are within normal discount range." } };
             }
             catch (Exception ex)
             {
