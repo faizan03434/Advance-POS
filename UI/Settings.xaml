@@ -81,6 +81,42 @@
                     </StackPanel>
                 </Border>
 
+                <!-- AI Configuration -->
+                <TextBlock Text="AI Configuration (BI Dashboard)" FontSize="16" FontWeight="Bold" Foreground="#1565C0" Margin="0,0,0,12"/>
+                <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,0,40">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.07" Color="Black"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="AI Provider" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <RadioButton x:Name="rbOllama" Content="Ollama (Local)" Margin="0,0,20,0" Checked="rbOllama_Checked"/>
+                            <RadioButton x:Name="rbOpenAI" Content="OpenAI / Other (API)" Checked="rbOpenAI_Checked"/>
+                        </StackPanel>
+                        
+                        <TextBlock Text="API Endpoint URL" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
+                        <TextBox x:Name="aiUrlField" Height="34" Padding="8,0" Background="#F8FAFC"
+                                 BorderBrush="#CBD5E0" Foreground="Black" VerticalContentAlignment="Center"
+                                 TextChanged="aiUrlField_TextChanged" FontSize="13" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="API Key (Leave empty for local Ollama)" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
+                        <PasswordBox x:Name="aiKeyField" Height="34" Padding="8,0" Background="#F8FAFC"
+                                     BorderBrush="#CBD5E0" Foreground="Black" VerticalContentAlignment="Center"
+                                     PasswordChanged="aiKeyField_PasswordChanged" FontSize="13" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="Model Name (e.g., llama3, gpt-3.5-turbo)" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
+                        <TextBox x:Name="aiModelField" Height="34" Padding="8,0" Background="#F8FAFC"
+                                 BorderBrush="#CBD5E0" Foreground="Black" VerticalContentAlignment="Center"
+                                 TextChanged="aiModelField_TextChanged" FontSize="13" Margin="0,0,0,10"/>
+
+                        <TextBlock Text="AI System Prompt (Instructions for the AI)" FontSize="12" Foreground="#6B7280" Margin="0,0,0,4"/>
+                        <TextBox x:Name="aiPromptField" Height="120" Padding="8" Background="#F8FAFC"
+                                 BorderBrush="#CBD5E0" Foreground="Black" VerticalContentAlignment="Top"
+                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                 TextChanged="aiPromptField_TextChanged" FontSize="13"/>
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
     </Grid>

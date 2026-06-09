@@ -1,0 +1,124 @@
+<UserControl x:Class="StationeryStoreManagementSystem.UI.BIDashboard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+             xmlns:local="clr-namespace:StationeryStoreManagementSystem.UI"
+             mc:Ignorable="d" 
+             d:DesignHeight="800" d:DesignWidth="1200"
+             Background="{DynamicResource BackgroundColor}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,20">
+            <TextBlock Text="Business Intelligence &amp; Analytics Dashboard" 
+                       FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextBlockForeground}"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="RefreshButton" Content="🔄 Refresh Data &amp; AI" Click="RefreshButton_Click" 
+                        Padding="15,5" Background="{DynamicResource HighlightBlue}" Foreground="White" BorderThickness="0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- 1. Sales Forecast Chart -->
+        <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource ListBoxBackground}" BorderBrush="{DynamicResource ListBoxBorderBrush}" BorderThickness="1" CornerRadius="10" Margin="5" Padding="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Total Sales vs. ML.NET 30-Day Forecast" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextBlockForeground}" Margin="0,0,0,10"/>
+                <lvc:CartesianChart Grid.Row="1" Series="{Binding SalesSeries}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" LegendPosition="Top"/>
+            </Grid>
+        </Border>
+
+        <!-- 2. Product Performance -->
+        <Border Grid.Row="2" Grid.Column="0" Background="{DynamicResource ListBoxBackground}" BorderBrush="{DynamicResource ListBoxBorderBrush}" BorderThickness="1" CornerRadius="10" Margin="5" Padding="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Top 5 Performing Products (Units Sold)" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextBlockForeground}" Margin="0,0,0,10"/>
+                <lvc:CartesianChart Grid.Row="1" Series="{Binding ProductSeries}" XAxes="{Binding ProductXAxes}" LegendPosition="Hidden"/>
+            </Grid>
+        </Border>
+
+        <!-- 3. Market Basket Analysis -->
+        <Border Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Background="{DynamicResource ListBoxBackground}" BorderBrush="{DynamicResource ListBoxBorderBrush}" BorderThickness="1" CornerRadius="10" Margin="5" Padding="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="Frequently Bought Together (Market Basket Analysis)" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextBlockForeground}" Margin="0,0,0,10"/>
+                <DataGrid Grid.Row="1" x:Name="MarketBasketGrid" AutoGenerateColumns="False" IsReadOnly="True" 
+                          Background="Transparent" BorderThickness="0"
+                          VerticalScrollBarVisibility="Auto">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Product A" Binding="{Binding ProductA}" Width="*"/>
+                        <DataGridTextColumn Header="Product B" Binding="{Binding ProductB}" Width="*"/>
+                        <DataGridTextColumn Header="Co-Occurrence Rate" Binding="{Binding CoOccurrenceRate, StringFormat=P1}" Width="120"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- 4. AI Executive Briefing -->
+        <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource TitleBlockBackground}" CornerRadius="10" Margin="5" Padding="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="🤖 AI STORE BREFING " FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource HighlightYellow}"/>
+                </StackPanel>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <TextBlock x:Name="AIBriefingText" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource TitleBlockForeground}" LineHeight="20"
+                               Text="Generating AI briefing... Ensure AI API is configured in Settings."/>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- 5. Cashier Anomalies -->
+        <Border Grid.Row="2" Grid.Column="1" Background="#80C0392B" BorderBrush="#C0392B" BorderThickness="2" CornerRadius="10" Margin="5" Padding="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="⚠️ Discount Anomalies" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextBlockForeground}" Margin="0,0,0,10"/>
+                <ItemsControl Grid.Row="1" x:Name="AnomaliesList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{DynamicResource ListBoxBorderBrush}" BorderThickness="0,0,0,1" Padding="5">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding CashierName}" FontWeight="Bold" Foreground="{DynamicResource TextBlockForeground}"/>
+                                    <TextBlock Text="{Binding Message}" Foreground="{DynamicResource TextBlockForegroundDisabled}" FontSize="12"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+
+    </Grid>
+</UserControl>

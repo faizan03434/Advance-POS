@@ -63,7 +63,10 @@ namespace StationeryStoreManagementSystem.DL
 
         public static List<Product> GetProducts(List<int>? ids = null)
         {
-            // CHANGED: added ExternalBarcode to SELECT
+            // Load all categories once for efficient lookup
+            var categories = CategoryDL.GetCategories();
+            var categoryMap = categories.ToDictionary(c => c.Id);
+
             SqlDataReader reader = Utils.ReadData(@"SELECT Id,Name,Code,ExternalBarcode,CompanyId,ReorderThreshold,CategoryId,ExpiryDate FROM Product WHERE IsDiscontinued=0");
             List<Product> products = new List<Product>();
             while (reader.Read())
@@ -72,9 +75,16 @@ namespace StationeryStoreManagementSystem.DL
                 p.Id = reader.GetInt32(0);
                 p.Name = reader.GetString(1);
                 p.Code = reader.GetString(2).Trim();
-                p.ExternalBarcode = reader.IsDBNull(3) ? null : reader.GetString(3).Trim();   // NEW
+                p.ExternalBarcode = reader.IsDBNull(3) ? null : reader.GetString(3).Trim();
                 p.ReorderThreshold = reader.IsDBNull(5) ? null : (int?)reader.GetInt32(5);
                 p.ExpiryDate = reader.IsDBNull(7) ? null : (DateTime?)reader.GetDateTime(7);
+                // Load Category object so Tax calculation works in Process Order
+                if (!reader.IsDBNull(6))
+                {
+                    int catId = reader.GetInt32(6);
+                    categoryMap.TryGetValue(catId, out var cat);
+                    p.Category = cat;
+                }
                 products.Add(p);
             }
             return products;
@@ -176,6 +186,10 @@ namespace StationeryStoreManagementSystem.DL
         }
         public static List<Stock> GetProductStocks(Product product)
         {
+            // Ensure Suppliers list is populated before matching
+            if (product.Suppliers == null || product.Suppliers.Count == 0)
+                product.Suppliers = SupplierDL.GetProductSuppliers(product.Id);
+
             SqlDataReader reader = Utils.ReadData(@"SELECT p1.SupplierId,s1.Stock,p1.Price,p1.RetailPrice,p1.DiscountAmount
                                 FROM (SELECT SupplierId,ProductId,SUM(Stock) Stock FROM SupplierStock GROUP BY ProductId,SupplierId) s1
                                 RIGHT JOIN PriceLog p1 ON p1.SupplierId=s1.SupplierId AND p1.ProductId=s1.ProductId
@@ -184,7 +198,12 @@ namespace StationeryStoreManagementSystem.DL
             List<Stock> stocks = new List<Stock>();
             while (reader.Read())
             {
-                var supplier = product.Suppliers?.Where(x => x.Id == reader.GetInt32(0)).FirstOrDefault();
+                int supplierId = reader.GetInt32(0);
+                // First try to find supplier in already-loaded list
+                var supplier = product.Suppliers?.FirstOrDefault(x => x.Id == supplierId);
+                // If not found in list, load directly from DB (handles newly linked suppliers)
+                if (supplier == null)
+                    supplier = SupplierDL.GetSupplier(supplierId);
                 if (supplier != null)
                     stocks.Add(new Stock(supplier, reader.GetSqlMoney(2).ToDouble(), reader.GetSqlMoney(3).ToDouble(),
                                          reader.GetSqlMoney(4).ToDouble(), reader.IsDBNull(1) ? 0 : reader.GetInt32(1)));

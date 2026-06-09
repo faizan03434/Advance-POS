@@ -43,6 +43,7 @@ namespace StationeryStoreManagementSystem
         private List<SideButton> AdminBtns = new List<SideButton>()
         {
             new SideButton() { Content = "Dashboard"},
+            new SideButton() { Content = "BI Analytics"}, // NEW: Added BI Analytics
             new SideButton() { Content = "Process Order"},
             new SideButton() { Content = "Manage Companies" },
             new SideButton() { Content = "Manage Categories" },
@@ -326,6 +327,9 @@ namespace StationeryStoreManagementSystem
                 case "Dashboard":
                     DashboardButton_Click(sender, e);
                     break;
+                case "BI Analytics":
+                    BIAnalyticsButton_Click(sender, e);
+                    break;
                 case "👤 Profile": // Icon matching exactly
                     ProfileButton_Click(sender, e);
                     break;
@@ -345,6 +349,11 @@ namespace StationeryStoreManagementSystem
         private void DashboardButton_Click(object sender, RoutedEventArgs e)
         {
             Content.Child = new Dashboard();
+        }
+
+        private void BIAnalyticsButton_Click(object sender, RoutedEventArgs e)
+        {
+            Content.Child = new BIDashboard();
         }
 
         private void ProfileButton_Click(object sender, RoutedEventArgs e)

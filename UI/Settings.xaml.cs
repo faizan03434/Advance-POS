@@ -38,6 +38,14 @@ namespace StationeryStoreManagementSystem.UI
             adminEmailField.Text = GlobalSettings.AdminEmail ?? "";
             expiryDaysField.Text = GlobalSettings.ExpiryAlertDays.ToString();
 
+            // AI settings
+            rbOllama.IsChecked = GlobalSettings.AIProvider == "Ollama";
+            rbOpenAI.IsChecked = GlobalSettings.AIProvider == "OpenAI";
+            aiUrlField.Text = GlobalSettings.AIUrl;
+            aiKeyField.Password = GlobalSettings.AIApiKey;
+            aiModelField.Text = GlobalSettings.AIModel;
+            aiPromptField.Text = GlobalSettings.AISystemPrompt;
+
             _loading = false;
         }
 
@@ -92,6 +100,36 @@ namespace StationeryStoreManagementSystem.UI
         {
             if (!_loading && int.TryParse(expiryDaysField.Text, out int days) && days > 0)
                 GlobalSettings.ExpiryAlertDays = days;
+        }
+
+        private void rbOllama_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.AIProvider = "Ollama";
+        }
+
+        private void rbOpenAI_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.AIProvider = "OpenAI";
+        }
+
+        private void aiUrlField_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.AIUrl = aiUrlField.Text.Trim();
+        }
+
+        private void aiKeyField_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.AIApiKey = aiKeyField.Password;
+        }
+
+        private void aiModelField_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.AIModel = aiModelField.Text.Trim();
+        }
+
+        private void aiPromptField_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_loading) GlobalSettings.AISystemPrompt = aiPromptField.Text;
         }
     }
 }

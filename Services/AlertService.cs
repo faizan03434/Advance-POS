@@ -2,6 +2,7 @@ using StationeryStoreManagementSystem.BL;
 using StationeryStoreManagementSystem.DL;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -62,12 +63,99 @@ namespace StationeryStoreManagementSystem.Services
             _timer.Tick += async (s, e) => await CheckAlertsAsync();
             _timer.Start();
 
-            // Run immediately on startup
-            Task.Run(async () => await CheckAlertsAsync());
+            // Run end-of-day briefing at 11 PM or on startup for testing
+            Task.Run(async () => {
+                await CheckAlertsAsync();
+                await RunEndOfDayBriefingAsync();
+            });
         }
 
         public static void Stop() => _timer.Stop();
 
+        /// <summary>
+        /// Aggregates all analytical data and generates an AI summary via LocalAIEngine.
+        /// Saves the result as a system notification.
+        /// </summary>
+        public static async Task RunEndOfDayBriefingAsync()
+        {
+            try
+            {
+                // 1. Aggregate Deep Business Data
+                var anomalies = AdvancedBIDataDL.GetCashierDiscountAnomalies();
+                var rfm = CustomerRetentionBL.CalculateRFM();
+                var atRisk = rfm.Where(c => c.Category == "At Risk").Select(c => c.CustomerName).ToList();
+                
+                // Product Performance (Top 5 only to reduce JSON size)
+                var topProducts = AdvancedBIDataDL.GetProductPerformance(30);
+                var performanceData = topProducts.Rows.Cast<System.Data.DataRow>().Take(5).Select(r => new {
+                    Product = r["Name"].ToString(),
+                    Units = Convert.ToInt32(r["UnitsSold"])
+                }).ToList();
+
+                // Seasonal Trends (Top 5)
+                var seasonalTrends = AdvancedBIDataDL.GetSeasonalTrends();
+                var trendsData = seasonalTrends.Rows.Cast<System.Data.DataRow>().Take(5).Select(r => new {
+                    Product = r["Name"].ToString(),
+                    Month = Convert.ToInt32(r["SaleMonth"]),
+                    Units = Convert.ToInt32(r["MonthlyUnits"])
+                }).ToList();
+
+                // Dead Stock (Top 5)
+                var deadStock = AdvancedBIDataDL.GetDeadStock();
+                var deadStockData = deadStock.Rows.Cast<System.Data.DataRow>().Take(5).Select(r => new {
+                    Product = r["Name"].ToString(),
+                    Stock = Convert.ToInt32(r["CurrentStock"])
+                }).ToList();
+
+                // Market Basket (Top 3 Bundles)
+                var bundles = AdvancedBIDataDL.GetFrequentlyBoughtTogether();
+                var bundleData = bundles.Rows.Cast<System.Data.DataRow>().Take(3).Select(r => new {
+                    A = r["ProductA"].ToString(),
+                    B = r["ProductB"].ToString()
+                }).ToList();
+
+                // 2. Prepare JSON for AI (Compressed keys to save tokens)
+                var aggregatedData = new
+                {
+                    Top = performanceData,
+                    Season = trendsData,
+                    Dead = deadStockData,
+                    Bundles = bundleData,
+                    Anomalies = anomalies.Rows.Cast<System.Data.DataRow>().Take(3).Select(r => new { 
+                        Name = r["CashierName"].ToString(), 
+                        Rate = Convert.ToDouble(r["CashierDiscountRate"])
+                    }).ToList()
+                };
+
+                string json = System.Text.Json.JsonSerializer.Serialize(aggregatedData);
+                System.Diagnostics.Debug.WriteLine("BI Data aggregated. Sending to AI...");
+
+                // 3. Get Master-Level AI Summary
+                string aiSummary = await LocalAIEngine.GetDailyExecutiveSummaryAsync(json);
+                System.Diagnostics.Debug.WriteLine("AI Summary received.");
+
+                // 4. Save to Local Text File (New System)
+                string reportDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AI_Reports");
+                if (!Directory.Exists(reportDir)) Directory.CreateDirectory(reportDir);
+
+                string fileName = $"BI_Report_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+                string filePath = Path.Combine(reportDir, fileName);
+
+                string fileContent = $"--- STATIONERY STORE AI BUSINESS INTELLIGENCE REPORT ---\n" +
+                                     $"Generated On: {DateTime.Now:f}\n" +
+                                     $"------------------------------------------------------\n\n" +
+                                     aiSummary;
+
+                File.WriteAllText(filePath, fileContent);
+                System.Diagnostics.Debug.WriteLine($"AI Briefing saved to file: {filePath}");
+                }
+                catch (Exception ex)
+                {
+                // In a background service, we just catch and log errors
+                System.Diagnostics.Debug.WriteLine("BI Briefing Error: " + ex.Message);
+                }
+
+        }
 
         public static async Task CheckAfterSaleAsync() => await CheckAlertsAsync();
 
